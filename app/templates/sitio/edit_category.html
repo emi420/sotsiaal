@@ -1,0 +1,14 @@
+{% extends 'sitio/base.html' %}
+
+{% block content %}
+    {% include 'sitio/admin_head.html' %}
+    <form class="agregar-categoria formulario" action="/admin/edit_category/{{ category.key }}/" method="post">
+        <h2>Agregar categor&iacute;a</h2>
+        <fieldset class="default-form">
+            <input name="title" class="text-input" value="{{ category.title }}" onclick="this.select()" />
+            <input name="name" class="text-input" value="{{ category.name }}" onclick="this.select()" />
+        </fieldset>
+        <div class="clear"><!-- --></div>
+        <span class="button"><input type="submit" value="Guardar" /></span>
+    </form>
+{% endblock %}               

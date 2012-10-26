@@ -1,0 +1,18 @@
+{% extends 'sitio/base.html' %}
+
+{% block content %}
+    {% include 'sitio/admin_head.html' %}
+    <h2>Listado de {% if internal_mode %}temas{% else %}historias{% endif %}</h2>
+    {% endif %}
+    <table class="admin-categories">
+        {% for story in stories %}
+            <tr>
+                <td><a href="{{ story.generate_path }}"><strong>{{ story.title }}</strong></a></td>
+                <td>{{ story.date }}</td>
+                <td>{{ story.pop }}</td>
+                <td>{{ story.karma }}</td>
+                <td>( <a href="/{{ story.author.nickname }}">{{ story.author.nickname }}</a>)</td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}               

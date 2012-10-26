@@ -1,0 +1,17 @@
+{% extends 'sitio/base.html' %}
+
+{% block content %}
+    <div class="content-header">
+        <a class="link-home" href="/">Inicio</a>
+    </div>
+    <div class="content clearfix">
+        <div class="sidebody alt">
+            {% if internal_mode %}
+                <h1>El tema ha sido borrado</h1>
+            {% else %}
+                <h1>La historia ha sido borrada</h1>
+            {% endif %}
+                        <p class="aviso-info">Para regresar a la portada haz click <a href="/">aqu&iacute;</a></p>
+           <hr />
+            <br />
+{% endblock %}

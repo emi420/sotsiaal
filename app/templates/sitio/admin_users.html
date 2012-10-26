@@ -1,0 +1,53 @@
+{% extends 'sitio/base.html' %}
+
+{% block content %}
+    {% include 'sitio/admin_head.html' %}
+    <h2>Listado de Usuarios</h2>
+    <div class="users-searcher">
+        <form action="/admin/users/" method="get">
+            <input class="input-search" type="text" onclick="this.select()"name="q" value="{% if userssearchquery %}{{ userssearchquery }}{% else %}Buscar ...{% endif %}"/>
+            <input class="input-boton" type="submit" value="" />
+        </form>
+    </div>
+    <table class="admin-categories">
+        {% for u in users %}
+            <tr>
+                <td><a href="/{{ u.nickname }}" ><strong>{{ u.nickname }}</strong>{% if u.facebook_id %} (facebook) {% endif %}</a></td>
+                <td>{{ u.name }}</td>
+                <td>{{ u.pop }}</td>
+                <td>{{ u.account_state }}</td>
+                <td><a href="/admin/edit_profile/{{ u.key }}/">Editar perfil</a></td>
+                <td><a href="/admin/reset_account/{{ u.key }}/">Resetear datos</a></td>
+                <td>{% if not u.facebook_id %}<a href="/admin/send_recovery_pass/{{ u.key }}/">Recuperar contraseña</a>{% endif %}</td>
+                {% if not u.account_state %}
+                    <td><a href="/admin/block_user/{{ u.key }}/">bloquear usuario</a></td>
+                {% endif %}
+                {% ifequal u.account_state 'blocked' %}
+                    <td><a href="/admin/enable_user/{{ u.key }}/">habilitar usuario</a></td>
+                {% endifequal %}
+                {% ifequal u.account_state 'deleted' %}
+                    <td><a href="/admin/enable_user/{{ u.key }}/">habilitar usuario</a></td>
+                {% endifequal %}
+            </tr>
+        {% endfor %}
+    </table>
+    {% if pages %}
+        {% ifnotequal pagecount 2 %}
+            <ul class="pager">
+                {% ifnotequal pageprev 0 %}
+                    <li><a href="?page={{ pageprev }}{% ifnotequal userssearchquery '' %}&q={{ userssearchquery }}{% endifnotequal %}" class="link-pag-prev">&laquo; Anterior</a></li>
+                {% endifnotequal %}
+                {% for i in pages %}
+                    {% ifequal i page %}
+                        <li class="selected">{{ i }}</li>
+                    {% else %}
+                        <li><a href="?page={{ i }}{% ifnotequal userssearchquery '' %}&q={{ userssearchquery }}{% endifnotequal %}">{{ i }}</a></li>
+                    {% endifequal %}
+                {% endfor %}
+                {% ifnotequal pagecount pagenext %}
+                    <li><a href="?page={{ pagenext }}{% ifnotequal userssearchquery '' %}&q={{ userssearchquery }}{% endifnotequal %}" class="link-pag-next">Siguiente &raquo;</a></li>
+                {% endifnotequal %}
+            </ul>
+        {% endifnotequal %}
+    {% endif %}
+{% endblock %}               

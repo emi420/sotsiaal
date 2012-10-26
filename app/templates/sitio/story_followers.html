@@ -1,0 +1,37 @@
+<!--
+<ul class="pub-actions no-sel">
+    <li class="selected"><a href="#"><span>Todos (200)</span></a></li>
+    <li><a href="#"><span>Mis amigos (12)</span></a></li>
+</ul>
+<div class="clear-pub-actions no-sel"></div>
+-->
+<h2 class="pub-date"><span>{{votes|length }} persona(s)</span></h2>
+<hr class="divider" />
+<ul class="followers">
+    {% for vote in votes %}
+		{% if vote %}
+			<li><a class="link-user" href="/{{ vote.author.nickname }}"><img class="avatar" src="/user_img/{{ vote.author.key }}/avatar_mini/" alt="{{ vote.author.nickname }}" /></a> <a class="username" href="/{{ vote.author.nickname }}">{{ vote.author.nickname }}</a></li>
+		{% endif %}
+    {% endfor %}
+</ul>
+<div class="clear"><!-- --></div>
+<hr class="divider" />
+<!--
+<ul class="pager">
+    <li class="selected"><a href="#" class="link-pag-prev">&laquo; Anterior</a></li>
+    <li><a href="#">1</a></li>
+    <li><a href="#">2</a></li>
+    <li><a href="#">3</a></li>
+    <li><a href="#">4</a></li>
+    <li><a href="#">5</a></li>
+    <li><a href="#">6</a></li>
+    <li><a href="#">7</a></li>
+    <li><a href="#">8</a></li>
+    <li><a href="#">9</a></li>
+    <li><a href="#">10</a></li>
+    <li class="blank">...</li>
+    <li><a href="#">218</a></li>
+    <li><a href="#">219</a></li>
+    <li><a href="#" class="link-pag-next">Siguiente &raquo;</a></li>
+</ul>
+-->

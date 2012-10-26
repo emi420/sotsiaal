@@ -1,0 +1,35 @@
+				<h1>Registrarse</h1>
+				<hr />
+                <form class="default-form signup" id="signup-sendfrm" action="/add_user/" onsubmit="return visualFX.validateForm('signup-nickname,signup-email,signup-pass,signup-rpass')" enctype="multipart/form-data" method="post">
+                    <label>E-mail {% ifnotequal allowed_user_domains '' %} ({{ allowed_user_domains|join:", " }}) {% endifnotequal %}</label>
+                    <input type="text" id="signup-email" name="email" class="text-input" value=""/>
+                    <p id="signup-email_t" class="tooltip hidden">Debe ser una cuenta en uso</p>
+                    <p id="signup-email_frmv" class="validatemsg hidden">Tu email es necesario por si necesitamos escribirte</p>
+                    <hr class="clear" />
+                    <label>Contrase&ntilde;a</label>
+                    <input type="password" id="signup-pass" name="password" class="text-input" value=""/>
+                    <p id="signup-pass_t" class="tooltip hidden">Escribe al menos 6 caracteres</p>
+                    <p id="signup-pass_frmv" class="validatemsg hidden">Elige una contrase&ntilde;a</p>
+                    <hr class="clear" />
+                    <label>Repite tu contrase&ntilde;a</label>
+                    <input type="password" id="signup-rpass" name="rpassword" class="text-input" value=""/>
+                    <p id="signup-rpass_t" class="tooltip hidden">Vuelve a escribir la contrase&ntilde;a</p>
+                    <p id="signup-rpass_frmv" class="validatemsg hidden">Vuelve a escribir la contrase&ntilde;a por favor</p>
+                    <hr class="clear" />
+                    <label for="nickname" >Elige un nombre de usuario (alias)</label>
+                    <input type="text" id="signup-nickname" name="nickname" class="text-input" value=""/>
+                    <p id="signup-nickname_t" class="tooltip hidden">Ser&aacute; el alias que te identifique ante la comunidad</p>
+                    <p id="signup-nickname_frmv" class="validatemsg hidden">Escribe un alias para identificarte ante la comunidad</p>
+                    <!-- <p class="default">Al registrarte, declaras haber le&iacute;do y aceptado los <a target="_blank" href="/legal/">t&eacute;minos y condiciones</a> del servicio</p>-->
+                    <hr />
+                    <br />
+                    <input type="hidden" name="urlback" value="{{ urlback }}"/>
+                    <span class="button"><input id="signup-btn_sendform" type="submit" value="Crear una cuenta y continuar" /></span>
+                    {% csrf_token %}
+                </form>
+                <script type="text/javascript">
+                    visualFX.loadTooltip('signup-nickname');
+                    visualFX.loadTooltip('signup-email');
+                    visualFX.loadTooltip('signup-pass');
+                    visualFX.loadTooltip('signup-rpass');
+                </script>

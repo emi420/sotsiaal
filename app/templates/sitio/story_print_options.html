@@ -1,0 +1,22 @@
+<br />
+<div class="clear"><!-- --></div>
+<p class="title"><strong>Elige un afiche</strong> para imprimir y promociona tu causa</p>
+<ul class="actions">
+    <li>
+        <p class="check"><input name="check-print" type="radio" value="" class="input-checkbox" /></p>      
+        <p class="title"><strong>Afiche callejero</strong></p>
+        <p class="desc">Puedes promocionar {% if internal_mode %}este tema{% else %}esta historia{% endif %} creando copias impresas peg&aacute;ndolas en tu barrio, trabajo y/o lugar de estudio.</p>
+        <img src="/static/img/var/print1.png" alt="Afiche"/>
+    </li>
+    <li class="last">
+        <p class="check"><input name="check-print" type="radio" value="" class="input-checkbox" /></p>      
+        <p class="title"><strong>Volante</strong></p>
+        <p class="desc">Crea copias impresas de este volante para repartir entre tus amigos, familiares y compa&ntilde;eros de trabajo o estudio.</p>
+        <img src="/static/img/var/print2.png" alt="Afiche"/>
+    </li>
+    <li class="button">
+        <span class="button small"><a href='javascript:window.open("/print_story/{{ story.key }}/","Imprimir")'>Imprimir</a></span>
+    </li>
+</ul>
+<div class="clear"><!-- --></div>
+

@@ -1,0 +1,114 @@
+{% extends 'sitio/base.html' %}
+
+{% block content %}
+    <div class="content-header">
+        <a class="link-home" href="/">Inicio</a>
+    </div>
+    <div class="content clearfix">
+        <div class="sidebody alt">
+            <h1 class="edit-profile">Mi perfil <a href="/{{ user.nickname }}">Ver perfil ({{ user.nickname }})</a></h1>
+            {% ifequal error '0' %}
+                <p class="aviso-info">Tu perfil fue actualizado.</p>
+            {% endifequal %}
+            {% ifequal error '1' %}
+                <p class="aviso-info">El tama&ntilde;o de la imagen debe ser menor a 1mb.</p>
+            {% endifequal %}
+            {% ifequal error '2' %}
+                <p class="aviso-info">Las contrase&ntilde;as no coinciden, vuelva a intentarlo por favor</p>
+            {% endifequal %}
+            <hr />
+            <form class="default-form edit-profile" action="/save_profile/" enctype="multipart/form-data" method="post">
+                <label>Avatar</label><br />
+                <label class="img-container"><img id="img-current-avatar" class="avatar" src="/user_img/{{ user.key }}/"></img></label>
+                <span class="default">El tama&ntilde;o de la imagen debe ser menor a 1mb</span> 
+                <p class="alt"><span id="avatar" class="input-file"><input name="img" type="file" /></span></p>
+                {% if user.avatar %}
+                    <p id="delete-current-avatar" class="delete-current"><a href="#deletecurrentavatar" onclick="javascript: doDeleteCurrentAvatar('{{ user.key }}')">Borrar actual</a></p>
+                {% endif %}
+                <hr class="clear" /><hr />
+                <label>Imagen de fondo</label><br />
+                <label class="img-container"><img height="50" width="50" id="img-current-bg" class="avatar" width="49" src="/user_img/{{ user.key }}/background/"></img></label>
+                <span class="default">El tama&ntilde;o de la imagen debe ser menor a 1mb</span> 
+                <p class="alt"><span class="input-file"><input name="imgbg" type="file" /></span></p>
+                {% if user.background %}
+                    <p id="delete-current-bg" class="delete-current"><a onclick="javascript: doDeleteCurrentBg('{{ user.key }}')" href="#deletecurrentbg">Borrar actual</a></p>
+                {% endif %}
+                <hr class="clear" /><hr />
+                <label>Banner</label><br />
+                <label class="img-container"><img height="50" width="50" id="img-current-banner" class="avatar" width="49" src="/user_img/{{ user.key }}/banner/"></img></label>
+                <span class="default">El tama&ntilde;o de la imagen debe ser menor a 1mb</span> 
+                <p class="alt"><span class="input-file"><input name="imgbanner" type="file" /></span></p>
+                <hr class="clear" /><hr />
+                <span class="button"><input type="submit" value="Guardar mi perfil" /></span>
+                <hr class="clear" /><hr />
+                <label>E-mail</label>
+                <input name="email" disabled="disabled" class="text-input" value="{{  user.email }}"/>
+                <label>Nombre de usuario</label>
+                <input name="nickname" disabled="disabled" class="text-input" value="{{  user.nickname }}"/>
+                <label>Nombre real</label>
+                <input name="name" class="text-input" value="{{ user.name }}"/>
+                <hr class="clear" />
+                <label>Sitio web</label>
+                <input name="url" class="text-input" value="{{ user.url }}"/>
+                <hr class="clear" />
+                <label>Resumen sobre ti</label>
+                <textarea name="bio" class="textarea">{{ user.bio }}</textarea>
+                <hr class="clear" />
+                <label>Ubicaci&oacute;n</label>
+                <input name="location" class="text-input" value="{{ user.location }}"/>
+                <hr class="clear" />
+                <label>Recibir alertas en mi e-mail si:</label>
+				<br />
+                <table>
+                    <tr>
+                        <td><input name="comments_alerts" type="checkbox" {% if user.comments_alerts %}checked{% endif %}/></td>
+                        <td><label class="secondaryLabel">Alguien comenta en mis {% if internal_mode %}temas{% else %}historias{% endif %}</label></td>
+                    </tr>
+                    <hr class="clear" />
+                    <tr>
+                        <td><input name="replies_alerts" type="checkbox" {% if user.replies_alerts %}checked{% endif %}/></td>
+                        <td style="padding: 10px 0 0"><label  class="secondaryLabel">Alguien responde a mis comentarios</label></td>
+                    </tr>
+                </table>
+                <hr class="clear" />
+				<br />
+                <label>Modo an&oacute;nimo:</label>
+				<br />
+                <table>
+                    <tr>
+                        <td><input name="invisible_mode" type="checkbox" {% if user.invisible_mode %}checked{% endif %}/></td>
+                        <td><label class="secondaryLabel">Activar modo an&oacute;nimo (tus posts e historias no incluir&aacute;n tu nombre de usuario)</label></td>
+                    </tr>
+                </table>
+                <hr />
+                <span class="button"><input type="submit" value="Guardar mi perfil" /></span>
+                {% csrf_token %}
+            </form>
+            <hr class="clear" />
+            <br />
+            <br />
+            <h2><a onclick="document.getElementById('new-pass').style.display='block'" class="expand" href="#new-pass">Cambiar mi contrase&ntilde;a</a></h2>
+            <form {% ifnotequal error '2' %} style="display:none" {% endifnotequal %}class="default-form edit-profile" id="new-pass" action="/save_pass/" enctype="multipart/form-data" method="post">
+                <hr />
+                <label>Nueva contrase&ntilde;a</label>
+                <input type="password" name="password" class="text-input" value=""/>
+                <hr class="clear" />
+                <label>Repetir contrase&ntilde;a</label>
+                <input type="password" name="rpassword" class="text-input" value=""/>
+                <hr class="clear" />
+                <span class="button"><input type="submit" value="Guardar contrase&ntilde;a" /></span>
+            </form>
+            <br />
+            <h2><a onclick="document.getElementById('delete-account').style.display='block'" class="expand" href="#delete-account">Borrar mi cuenta</a></h2>
+            <form {% ifnotequal error '2' %} style="display:none" {% endifnotequal %}class="default-form edit-profile" id="delete-account" action="/send_deletion_mail/{{ user.key }}/" enctype="multipart/form-data" method="post">
+				<br>
+				<h2>Por favor, cu&eacute;ntanos &iquest;por qué nos dejas?</h2>
+                <textarea name="deletion_msg" class="textarea"></textarea>
+                <hr class="clear" />
+                <p>Para eliminar tu cuenta haz click en el enlace de confirmación que recibirás en tu e-mail. Una vez que hagas esto, <strong>no podrás volver a ingresar al sitio con los mismos datos de acceso.</strong></p>
+				<p>Si arrepientes, elimina el e-mail de confirmaci&oacute;n	y podrás seguir utilizando tu cuenta normalmente.</p>
+                <hr class="clear" />
+                <br />
+                <span class="button"><input type="submit" value="Borrar mi cuenta" /></span>
+            </form>
+{% endblock %}

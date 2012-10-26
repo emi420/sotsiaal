@@ -1,0 +1,42 @@
+{% extends 'sitio/base.html' %}
+
+{% block content %}
+    <div class="content-header">
+        <a class="link-home" href="/">Inicio</a>
+    </div>
+    <div class="content clearfix">
+        <div class="sidebody alt">
+            {% ifequal error '0' %}
+                <h1>Mensaje enviado</h1>
+                <hr />		
+                <p class="default">Tu mensaje ha sido enviado, muchas gracias por escribirnos.</p>
+                <ul class="default">
+                    <li>&iquest;Tienes algo interesante para contar? <a href="/new_story/">Sube tu {% if internal_mode %}tema{% else %}historia{% endif %}</a></li>
+                    <li>Si lo deseas, puedes <a href="/">ir a la portada</a> del sitio.</li>
+                </ul>
+            {% else %}
+                <h1>Escr&iacute;benos un mensaje</h1>
+                {% ifequal error '2' %}
+                    <p id="aviso-info-2" class="aviso-info">Debe escribir una direcci&oacute;n de email v&aacute;lida.</p>
+                {% endifequal %}
+                {% ifequal error '1' %}
+                    <p id="aviso-info-3" class="aviso-info">Debes completar todos los campos.</p>
+                {% endifequal %}
+                <hr /><br />	
+                <form accept-charset="utf-8" onsubmit="return visualFX.validateForm('email,msg')" enctype="multipart/form-data" class="formulario" action="/send_contact_msg/" method="post">
+                    <fieldset class="default-form">
+                        <label>Tu e-mail</label>
+                        <input name="email" id="email" class="text-input" />
+                        <p id="email_frmv" class="validatemsg hidden">Escribe tu direcci&oacute;n de e-mail.</p>
+                        <div class="clear"><!-- --></div>
+                        <label>Mensaje</label>
+                        <textarea id="msg" name="msg" class="textarea"></textarea>
+                        <p id="msg_frmv" class="validatemsg hidden alt-textarea">Escribe tu mensaje.</p>
+                        <div class="clear"><!-- --></div>
+                        <div class="divider"><!-- --></div>
+                        <span class="button"><input type="submit" value="Enviar" /></span>
+                        {% csrf_token %}
+                    </fieldset>
+                </form>
+            {% endifequal %}
+{% endblock %}

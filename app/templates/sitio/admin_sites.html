@@ -1,0 +1,27 @@
+
+{% extends 'sitio/base.html' %}
+
+{% block content %}
+    {% include 'sitio/admin_head.html' %}
+    <form class="agregar-sitio formulario" action="/admin/add_site/" method="post">
+        <h2>Agregar sitio</h2>
+        <fieldset class="default-form">
+            <input name="title" class="text-input" value="Title" onclick="this.select()" />
+            <input name="domain" class="text-input" value="Name" onclick="this.select()" />
+        </fieldset>
+        <div class="clear"><!-- --></div>
+        <span class="button"><input type="submit" value="Agregar" /></span>
+        <div class="divider"><!-- --></div>
+    </form>
+    <h2>Listado de sitios</h2>
+    <table class="admin-sites">
+        {% for site in sites %}
+            <tr>
+                <td><strong>{{ site.title }}</strong></td>
+                <td>( {{ site.domain }} )</td>
+                <td><a href="/admin/edit_site/{{ site.key }}/">Editar</a></td>
+                <td><a href="/admin/delete_site/{{ site.key }}/">Eliminar</a></td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}               

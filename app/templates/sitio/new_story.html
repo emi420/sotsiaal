@@ -1,0 +1,130 @@
+{% extends 'sitio/base.html' %}
+
+{% block content %}
+    <div class="content-header">
+        <a class="link-home" href="/">Inicio</a>
+    </div>
+    <div class="content clearfix">
+        <div class="sidebody alt">
+			{% ifequal get_feed '' %}
+                {% if internal_mode %}
+                    <h1>Crear un nuevo tema</h1>
+                {% else %}
+                    <h1>Nuevo tema</h1>
+                {% endif %}
+				{% ifequal error '1' %}
+					<p class="aviso-info">Completa todos los datos que no son opcionales.</p>
+				{% endifequal %}
+				{% ifequal error '2' %}
+					<p class="aviso-info">Vuelve a escribir la frase por favor, algo ha ido mal.</p>
+				{% endifequal %}
+				<hr /><br />	
+				<form accept-charset="utf-8" onsubmit="return visualFX.validateForm('title,category,bio')" enctype="multipart/form-data" class="subir-tema formulario" action="/add_story/" method="post">
+					<fieldset class="default-form submit-story">
+						<label>T&iacute;tulo</label>
+						<input name="title" id="title" class="text-input" value="" />
+						<p id="title_t" class="tooltip hidden">Escribe un breve resumen.</p>						
+                        <p id="title_frmv" class="validatemsg hidden">Escribe el t&iacute;tulo de tu {% if internal_mode %}tema{% else %}historia{% endif %}.</p>
+						<div class="clear"><!-- --></div>
+						<label>Categor&iacute;a</label>
+						<select id="category" name="category" class="select">
+							<option value="">Elige una...</option>
+							{% for category in categories %}
+								<option value="{{ category.name }}">{{ category.title }}</option>
+							{% endfor %}
+						</select>
+                        <p id="category_t" class="tooltip hidden">Elige la categor&iacute;a que m&aacute;s represente a tu {% if internal_mode %}tema{% else %}historia{% endif %}.</p>
+						<p id="category_frmv" class="validatemsg hidden alt-select">Debes elegir una categor&iacute;a.</p>
+						<div class="clear"><!-- --></div>
+						<label>Descripci&oacute;n</label>
+						<textarea id="bio" name="bio" class="textarea">{{ get_desc }}</textarea>
+						<p id="bio_t" class="tooltip textarea hidden">Aqu&iacute; puedes explayarte un poco m&aacute;s.</p>
+                        <p id="bio_frmv" class="validatemsg hidden alt-textarea">Describe brevemente el contenido de tu {% if internal_mode %}tema{% else %}historia{% endif %}.</p>
+						<div class="clear"><!-- --></div>
+						<div id="divimg">
+							<label>Imagen (.jpg, .gif, .png)</label>
+							<br />
+							<img style="display:none" width="50" height="50" src="" class="avatar" id="url_img">
+							<p style="display:none" id="delete-current-img" class="delete-current"><a href="#noimage" onclick="noImage()">Sin imagen</a></p>
+							<input type="hidden" name="url_img_value" id="url_img_value" value=""/> 
+							<p class="alt"><span class="input-file" id="img"><input id="imgfile" name="img" type="file" /></span></p>
+                            <p id="img_t" class="tooltip hidden">Puedes agregar una imagen a tu {% if internal_mode %}tema{% else %}historia{% endif %}.</p>
+							<div class="clear"><!-- --></div><br />
+						</div>
+						<label>Enlace</label>
+						<input name="link"  id="link" class="text-input" value="{{ get_url }}"/>
+						<p id="link_t" class="tooltip hidden">Agrega un enlace si lo deseas.</p>
+						<div class="clear"><!-- --></div>
+<!--                        <br />
+                        <table>
+                            <tr>
+                                <td><input name="block_anonymous" type="checkbox" /></td>
+                                <td><label class="secondaryLabel">Impedir comentarios de usuarios an&oacute;nimos</label></td>
+                            </tr>
+                        </table>
+                        <br />-->
+						{% ifequal is_anon '1' %}
+						<label>Escribe el siguiente texto</label>
+						<br />
+							{{ captchahtml|safe }}
+							<style type="text/css">
+								#recaptcha_instructions_image { display: none !important }
+								.recaptchatable #recaptcha_response_field { 
+									font-family:arial;
+									font-size:13pt;
+									height:31px;
+									padding:0 5px !important;
+									width:132px !important;
+								}
+							</style>
+						{% endifequal %}
+						<div class="divider"><!-- --></div>
+						<span class="button"><input type="submit" value="Enviar" /></span>
+						{% csrf_token %}
+					</fieldset>
+				</form>
+				<script type="text/javascript">
+					visualFX.loadTooltip('title');
+					visualFX.loadTooltip('bio');
+					visualFX.loadTooltip('img');
+					visualFX.loadTooltip('link');
+					visualFX.loadTooltip('category');
+					
+					function noImage() {
+						document.getElementById('divimg').style.display='none';
+						document.getElementById('url_img_value').value = '' ;
+					}
+					
+					$(document).ready(function() {
+						if ( document.getElementById('link').value ) {					
+							var url = $('#link').val() ;
+							GetNewStoryImgSrc( url ) ;
+						}
+					});
+
+				</script>
+			{% else %}
+                <h1>Subir <span id="feed_stories_count">0</span> {% if internal_mode %}tema{% else %}historia{% endif %}(s)</h1>
+				<hr />
+				<p><strong>Fuente:</strong> {{ get_feed }}</p>
+				<hr />
+				<form accept-charset="utf-8" enctype="multipart/form-data" class="subir-tema formulario" action="/add_stories_from_feed/" method="post">
+				<fieldset class="default-form submit-story">
+					<ul id="feed-story-list" class="feed-story-list">
+					</ul>
+					<input type="hidden" name="feed" id="feed" value="{{ get_feed }}"/> 
+					<div class="clear"><!-- --></div>
+					<div class="divider"><!-- --></div>
+					<span class="button"><input type="submit" value="Enviar" /></span>
+				</fieldset>
+				</form>
+				<script type="text/javascript">
+					$(document).ready(function() {
+						if ( document.getElementById('feed').value ) {					
+							var feed = $('#feed').val() ;
+							GetStoriesFromFeed( feed ) ;
+						}
+					});
+				</script>
+			{% endifequal %}
+{% endblock %}

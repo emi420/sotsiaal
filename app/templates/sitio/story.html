@@ -1,0 +1,154 @@
+{% extends 'sitio/base.html' %}
+
+{% block content %}
+<script type="text/javascript" charset="utf-8" src="http://bit.ly/javascript-api.js?version=latest&login={{ tw_api_user  }}&apiKey={{ tw_api_key }}"></script>
+    <script type="text/javascript" charset="utf-8"> 
+        // wait until page is loaded to call API
+        BitlyClient.addPageLoadEvent(function(){
+            BitlyCB.myShortenCallback = function(data) {
+                // this is how to get a result of shortening a single url
+                var result;
+                for (var r in data.results) {
+                    result = data.results[r];
+                    result['longUrl'] = r;
+                    break;
+                }
+                var story_title = escape('{{ storytitle }}') ;
+                var lnkTwitter = document.getElementById("lnk-twitter") ;
+                var lnkFacebook = document.getElementById("lnk-facebook")
+                var lnkEmail = document.getElementById("lnk-email")
+                lnkTwitter.href = 'http://twitter.com/home?status=+' + '{{ storytitle|urlencode }}' + ' ' + result['shortUrl'] + '&source=SNDW';
+                lnkFacebook.href = 'http://www.facebook.com/sharer.php?u=' + result['shortUrl'] + '&t=' + story_title ;
+                lnkEmail.href = 'mailto:?subject=%20%3A%20' + story_title + '&body=Hola, quiero%20compartir%20esta%20historia%20contigo%3A%20' + result['shortUrl'] ;
+                // document.getElementById("menu-compartir").innerHTML = result['shortUrl'] ;
+            }
+            BitlyClient.shorten(document.location, 'BitlyCB.myShortenCallback');
+        });
+    </script> 
+    <div id="box-welcome" class="box welcome{% if usrburied %} buried{% endif %}">
+        <div class="top-left"></div><div class="top-right"></div>
+        <div class="inside">
+            <div class="content-list-item {% if not story.image %} no-image {% endif %}">
+                <div class="content-list-content">
+                    <h1><a {% if story.link %}target="_blank" rel="nofollow"{% endif %} href="{% if story.link %}{{ story.link }}{% else %}{{ story.generate_path }}{% endif %}">{{ story.title }}</a></h1>
+                    {% if story.link %}<p><a rel="nofollow" target="_blank" href="{{ story.link }}">{{ story.link }}</a></p>{% endif %}
+                    <p>{% autoescape off%}{{ story.bio|urlize|linebreaksbr }}{% endautoescape %}</p>
+                    <ul id="share-menu" class="content-list-item-menu">
+                        <li class="link-share"><a id="menu-compartir" href="#share">Compartir</a></li>
+                        <ul id="menu-compartir_c" class="menu-boton" style="display:none">
+                            <li><a id="lnk-email" class="lnk-email" href="mailto:?subject=%20%3A%20{{ story.title }}&amp;body=Hola, quiero%20compartir%20esta%20historia%20contigo%3A%20http://social.ndway.com{{ story.generate_path }}">Email</a></li>
+                            <li><a id="lnk-twitter" class="lnk-twitter" href="http://twitter.com/home?status={{ story.title }}+http://social.ndway.com{{ story.generate_path }}&source=SNDW">Twitter</a></li>
+                            <li class="ultimo"><a id="lnk-facebook" class="lnk-facebook" href="http://www.facebook.com/sharer.php?u=http://social.ndway.com{{ story.generate_path }}&t={{ story.title }}">Facebook</a></li>
+                        </ul>
+                        {% if user %}
+		                        {% if not usrburied %}
+									{% if not usrvoted %}
+										<li class="link-bury" id="link-bury"><a onclick="javascript: doVoteStory('{{ story.key }}', 'remove');" href="#vote_story"><span>Enterrar</span></a></li>
+									{% endif %}
+                                {% endif %}
+                                {% if user.is_admin %}
+                                    {% if story.status %}
+                                        <li><a href="/admin/enable_story/{{ story.key }}/"><span>Desbloquear {% if internal_mode %}tema{% else %}historia{% endif %}</span></a></li>
+                                    {% else %}
+                                        <li><a href="/admin/block_story/{{ story.key }}/"><span>Bloquear {% if internal_mode %}tema{% else %}historia{% endif %}</span></a></li>
+                                    {% endif %}
+                                {% endif %}
+                                
+                                {% ifequal user.key  story.author.key %}
+                                <li><a href="/delete_story/{{ story.key }}/"><span>Borrar {% if internal_mode %}tema{% else %}historia{% endif %}</span></a></li>
+                                {% endifequal %}
+                        {% else %}
+                            <li class="link-" id="link-bury"><a onclick="javascript: $('#link-login-header').trigger('click');" href="#vote_story"><span>Enterrar</span></a></li>
+                        {% endif %}
+                        <!-- <li class="link-mark"><a href="#">Favorito</a></li>-->
+                    </ul>
+                </div>
+                <ul class="content-list-vote">
+                    <li class="points"><strong id="pts-story-{{ story.key }}">{{ story.pop }}</strong></li>
+                    <li>vote(s)</li>
+                    <li class="vote" id="vote-button-li">
+                        {% if user %}
+		                        {% if not usrvoted %}
+									 {% if not usrburied %}
+										<a onclick="javascript: doVoteStory('{{ story.key }}', 'add')" href="#vote_story" class="button-vote" id="button-vote">Votar</a>
+									 {% else %}
+										Buried
+									 {% endif %}
+								{% else %}
+									Voted
+								{% endif %}
+                        {% else %}
+                            <a onclick="javascript: $('#link-login-header').trigger('click');" href="#vote_story" class="button-vote" id="button-vote">Votar</a>
+                        {% endif %}
+                    </li>
+                </ul>
+                {% if story.avatar %}
+                    <a target="_blank" href="/story_original_img/{{ story.key }}/"><img class="content-list-image" src="/story_original_img/{{ story.key }}/" alt="{{ story.title }}" /></a>
+                {% else %}
+					{% if story.image %}
+						<a target="_blank" href="/story_original_img/{{ story.key }}/"><img class="content-list-image" src="/story_img/{{ story.key }}/" alt="{{ story.title }}" /></a>						
+					{% endif %}
+                {% endif %}
+            </div>
+            <div class="user-info">
+                <a class="link-user" href="/{{ story.author.nickname }}"><img class="avatar" src="/user_img/{{ story.author.key }}/" alt="{{ story.author.user.nickname }}" /></a>
+                <p>
+                    por <br />
+                    <a class="link-user" href="/{{ story.author.nickname }}">{{ story.author.nickname }}</a> <br />
+                    hace
+                    {% ifequal difference_unit '1' %} un instante {% endifequal %} 
+                    {% ifequal difference_unit '2' %} {{ difference }} minuto(s) {% endifequal %} 
+                    {% ifequal difference_unit '3' %} {{ difference }} horas(s) {% endifequal %} 
+                    {% ifequal difference_unit '4' %}
+                    	{% ifequal difference 0 %} 
+	                    	algun dia
+	                    {% else %}
+	                    	{{ difference }} dias(s) 
+                    	{% endifequal %} 
+                    {% endifequal %} 
+                    <br />
+                    {% if user %}
+                    {% ifnotequal user.key story.author.key %}
+                    {% ifequal following 0 %}
+                        <a class="link-follow" id="link-follow" href="#addfriend" onclick="javascript: doAddFriend('{{ story.author.key }}','{{ user.key }}')">Seguir</a>
+                    {% else %}
+                        <a class="link-follow" id="link-follow" href="#removefriend" onclick="javascript: doRemoveFriend('{{ story.author.key }}','{{ user.key }}')">Dejar de seguir</a>
+                    {% endifequal %}
+                    {% endifnotequal %}
+                    {% endif %}
+                </p>
+            </div>
+            <div class="clear"><!-- --></div>
+				{% ifequal msg '1' %}
+					<!-- <p class="aviso-info">Parece que {% if internal_mode %}este tema{% else %}esta historia{% endif %} ya est&aacute; en el sitio. &iexcl;Participa de la discusi&oacute;n!</p> -->
+				{% endifequal %}
+        </div>
+        <div class="bottom-left"></div><div class="bottom-right"></div>
+    </div>
+    {% ifequal error '1' %}
+        <p class="aviso-info">Inténtalo nuevamente, algo anduvo mal con el reCAPTCHA.</p>
+    {% endifequal %}
+    <div class="content-header">
+        <a class="link-home" href="/">Inicio</a>
+        <ul class="menu-tabs">
+            <li id="story-menu-item1" class="selected"><a href="#storywall" onclick="getStoryWall('{{ story.key }}')">Discusión</a></li>
+            {% if internal_mode %}
+                <li id="story-menu-item2" class="style1"><a href="#storyfollowers" onclick="getStoryFollowers('{{ story.key }}')">&iquest;Qui&eacute;nes votaron este tema?</a></li>
+            {% else %}
+                <li id="story-menu-item2" class="style1"><a href="#storyfollowers" onclick="getStoryFollowers('{{ story.key }}')">&iquest;Quiénes votaron este tema?</a></a></li>
+            {% endif %}
+            <li id="story-menu-item3" class="style2"><a href="#storyprint" onclick="getStoryPrintOptions('{{ story.key }}')">&iexcl;Act&uacute;a ahora!</a></li>
+        </ul>
+    </div>
+
+    <script type="text/javascript">
+        visualFX.loadDDMenu('menu-compartir') ;
+    </script>
+
+    <div class="content clearfix">
+        <div class="sidebody" id="story-wall-2" style="display: none">
+		</div>
+        <div class="sidebody" id="story-wall">
+            {% include 'sitio/story_wall.html' %}
+
+{% endblock %}

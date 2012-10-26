@@ -1,0 +1,73 @@
+{% extends 'sitio/base.html' %}
+
+{% block content %}
+    <div class="content-header">
+        {% if user %}
+        <a class="link-home" href="/">Inicio</a>
+        {% endif %}
+    </div>
+    <div class="content clearfix">
+        <div class="sidebody alt">
+            {% ifequal message '1' %}
+				<h1>Revisa tu e-mail</h1>
+                <p class="aviso-info">Se ha enviado un e-mail a tu casilla de correo, con las instrucciones necesarias<br />para activar tu cuenta.</p>
+            {% endifequal %}
+            {% ifequal message '2' %}
+				<h1>&iexcl;Cuenta activada!</h1>
+                <p class="aviso-info"><strong>Felicitaciones!</strong> Tu cuenta ha sido activada.</p>
+                <hr />
+	            <br />
+    	        <p><a href="/edit_profile/"><strong>Ir a mi cuenta</strong></a></p>
+            {% endifequal %}
+            {% ifequal message '3' %}
+				<h1>Oops! la cuenta no puede activarse</h1>
+                <p class="aviso-info">Lo sentimos, pero la cuenta no ha podido ser activada. Quiz&aacute;s no hayas escrito la url correctamente, o tu cuenta ha pasado demasiado tiempo sin ser activada. Puedes volver a intentar crear una cuenta <a class="link-signup" href="#signup">aqu&iacute;.</a></p>
+            {% endifequal %}
+            {% ifequal message '4' %}
+				<h1>Oops! algo ha fallado</h1>
+                <p class="aviso-info">Lo sentimos, pero no ha podido ser enviado el e-mail de activaci&oacute;n de la cuenta. Puedes volver a intentar crear una cuenta <a class="link-signup" href="#signup">aqu&iacute;.</a></p>
+            {% endifequal %}
+            {% ifequal message '5' %}
+				<h1>Activa tu cuenta</h1>
+                <p class="aviso-info">Tu cuenta a&uacute;n no ha sido activada! Se ha enviado un e-mail a tu casilla de correo, con las instrucciones necesarias para activar tu cuenta.</p>
+            {% endifequal %}
+            {% ifequal message '6' %}
+				<h1>Activa tu cuenta</h1>
+                <p class="aviso-info">Se ha enviado un e-mail a tu casilla de correo, con las instrucciones necesarias para eliminar tu cuenta.</p>
+            {% endifequal %}
+            {% ifequal message '7' %}
+				<h1>Cuenta eliminada</h1>
+                <p class="aviso-info">Tu cuenta ha sido eliminada correctamente, ya no podr&aacute;s ingresar a SubeTuQueja con tu nombre de usuario y contrase&ntilde;a. Puedes crear una nueva cuenta ingresando <a class="link-signup" href="#signup">aqu&iacute;</a></p>
+            {% endifequal %}
+            {% ifequal message '8' %}
+				<h1>Oops! algo ha fallado</h1>
+                <p class="aviso-info">Lo sentimos, pero no ha podido ser enviado el e-mail de confirmaci&oacute;n de eliminaci&oacute;n de la cuenta. Puedes volver a intentarlo desde tu <a href="/edit_profile/">Perfil.</a></p>
+            {% endifequal %}
+            {% ifequal message '9' %}
+				<h1>Oops! algo ha fallado</h1>
+                <p class="aviso-info">Lo sentimos, pero la cuenta no ha podido ser eliminada. Quiz&aacute;s no hayas escrito la url correctamente, o ha pasado demasiado tiempo desde que has recibido el e-mail de confirmaci&oacute;n. Puedes volver a enviar el e-mail de confirmaci&oacute;n desde tu <a href="/edit_profile/">Perfil.</a></p>
+            {% endifequal %}
+            {% ifequal message '10' %}
+				<h1>Oops! algo ha fallado</h1>
+                <p class="aviso-info">La cuenta con la que deseas iniciar sesi&oacute;n ha sido eliminada! Puedes crear una nueva cuenta ingresando <a class="link-signup" href="#signup">aqu&iacute;</a></p>
+            {% endifequal %}
+            {% ifequal message '11' %}
+				<h1>Oops! algo ha fallado</h1>
+                <p class="aviso-info">La cuenta con la que deseas iniciar sesi&oacute;n ha sido temporalmente bloqueada.</p>
+            {% endifequal %}
+            {% ifequal message '12' %}
+				<h1>El dominio no se encuentra autorizado</h1>
+                <p class="aviso-info">Para acceder a Social NDW deberás contar con una cuenta en un dominio autorizado. <br />Para solicitar cuentas para el dominio de tu empresa u organización, <a href="/contact/">contáctanos</a>.</p>
+                <hr />
+	            <br />
+    	        <p><a href="{{ logout_url }}"><strong>Salir de mi cuenta</strong></a></p>
+
+<br />
+
+            {% endifequal %}
+            {% ifequal message '' %}
+            <hr />
+            <br />
+            <p>&iquest;Necesitas una cuenta? <a href="/contact/"><strong>Contáctanos</strong></a></p>
+            {% endifequal %}
+{% endblock %}

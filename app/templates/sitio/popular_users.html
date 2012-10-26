@@ -1,0 +1,37 @@
+{% extends 'sitio/base.html' %}
+
+{% block content %}
+	<div class="content-header"> 
+        <a class="link-home" href="/">Inicio</a> 
+    </div> 
+    <div class="content clearfix"> 
+        <div class="sidebody alt pop-users"> 
+            <h1>Usuarios destacados</h1> 
+            
+            <hr /><br />	
+            {% if users %}
+                {% for u in users %}
+                    <div class="content-list-item {% if not u.avatar_mini %} no-image {% endif %} ">
+<!--                        <ul class="content-list-vote">
+                            <li class="points"><strong>{{ u.pop }}</strong></li>
+                            <li>Puntos</li>
+                        </ul>
+-->
+                        <div class="content-list-content">
+							<a href="/{{ u.nickname }}"><img class="content-list-image" src="/user_img/{{ u.key }}/" alt="{{ u.nickname }}" /></a>
+							<h3><a href="/{{ u.nickname }}">{{ u.nickname }}</a></h3>
+							<p>{{ story.shortdesc }}<p>
+                        </div>
+                        <div class="clear"><!-- --></div>
+                    </div>
+                    <div class="clear"><!-- --></div>
+                {% endfor %}
+                <div class="clear"><!-- --></div>
+           {% else %}
+                <h2>Oops! no tenemos nada que mostrarte aqu&iacute;.</h2>
+                <ul class="default">
+                    <li>&iquest;Tienes algo interesante para contar? <a href="/new_story/">Sube tu {% if internal_mode %}tema{% else %}historia{% endif %}</a></li>
+                    <li>Si lo deseas, puedes <a href="/">ir a la portada</a> del sitio.</li>
+                </ul>
+            {% endif %}
+{% endblock %}

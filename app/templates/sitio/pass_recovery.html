@@ -1,0 +1,74 @@
+{% extends 'sitio/base.html' %}
+
+{% block content %}
+    <div class="content-header">
+        <a class="link-home" href="/">Inicio</a>
+    </div>
+    <div class="content clearfix">
+        <div class="sidebody alt">
+            {% ifequal rkey '' %}
+                {% ifequal error '4' %}                 
+                    <h1>Has cambiado tu contrase&ntilde;a</h1>
+                    <hr />      
+                    <p class="default">Listo! ya puedes entrar al sitio con tu nueva contrase&ntilde;a.</p>
+                    <ul class="default">
+                        <li>Siguiente paso: <a class="link-login" href="#login">entrar</a> al sitio.</li>
+                        <li>&iquest;Tienes alguna consulta? <a href="/contact/">escr&iacute;benos</a></li>
+                    </ul>
+                {% else %}
+                    {% ifequal error '0' %}
+                        <h1>Revisa tu e-mail</h1>
+                        <hr />      
+                        <p class="default"><strong>Se ha enviado un enlace a tu e-mail</strong> para que puedas restaurar tu contrase&ntilde;a.</p>
+                        <ul class="default">
+                            <li>Si no encuentras el mensaje, por favor revisa el correo no deseado (spam)</li>
+                            <li>&iquest;Tienes alguna consulta? <a href="/contact/">escr&iacute;benos</a></li>
+                        </ul>
+                    {% else %}
+                        <h1>Restaurar contrase&ntilde;a</h1>
+                        {% ifequal error '2' %}
+                            <p id="aviso-info-2" class="aviso-info">Debe escribir una direcci&oacute;n de email v&aacute;lida.</p>
+                        {% endifequal %}
+                        <hr /><br />    
+                        <p class="default">Completa tus datos, te enviaremos un enlace para restaurar tu contrase&ntilde;a.</p>
+                        <br />
+                        <form accept-charset="utf-8" onsubmit="return visualFX.validateForm('nickname,email')" enctype="multipart/form-data" class="formulario" action="/send_recovery_pass/" method="post">
+                            <fieldset class="default-form">
+                                <label>Nombre de usuario</label>
+                                <input name="nickname" id="nickname" class="text-input" />
+                                <p id="nickname_frmv" class="validatemsg hidden">Escribe tu nombre de usuario en este sitio.</p>
+                                <hr class="clear" />
+                                <label>E-mail</label>
+                                <input name="email" id="email" class="text-input" />
+                                <p id="email_frmv" class="validatemsg hidden">Escribe tu direcci&oacute;n de e-mail.</p>
+                                <div class="divider"><!-- --></div>
+                                <span class="button"><input type="submit" value="Enviar" /></span>
+                                {% csrf_token %}
+                            </fieldset>
+                        </form>
+                    {% endifequal %}
+                {% endifequal %}
+            {% else %}
+                <h1>Restaurar contrase&ntilde;a</h1>
+                {% ifequal error '3' %}
+                    <p class="aviso-info">Las contrase&ntilde;as no coinciden, vuelva a intentarlo por favor.</p>
+                {% endifequal %}
+                <hr /><br />    
+                <p class="default">Escribe tu nueva contrase&ntilde;a.</p>
+                <br />
+                <form class="default-form edit-profile" id="new-pass" action="/save_pass/" enctype="multipart/form-data" method="post">
+                    <hr />
+                    <label>Nombre de usuario:</label>
+                    <input type="nickname" name="nickname" class="text-input" value=""/>
+                    <hr class="clear" />
+                    <label>Nueva contrase&ntilde;a</label>
+                    <input type="password" name="password" class="text-input" value=""/>
+                    <hr class="clear" />
+                    <label>Repetir nueva contrase&ntilde;a</label>
+                    <input type="password" name="rpassword" class="text-input" value=""/>
+                    <hr class="clear" />
+                    <span class="button"><input type="submit" value="Guardar contrase&ntilde;a" /></span>
+                    <input type="hidden" name="rkey" id="rkey" value="{{ rkey }}" />
+                </form>
+            {% endifequal %}
+{% endblock %}

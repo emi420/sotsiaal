@@ -1,0 +1,33 @@
+{% extends 'sitio/base.html' %}
+
+{% block content %}
+    <div class="content-header">
+        <a class="link-home" href="/">Inicio</a>
+    </div>
+    <div class="content clearfix">
+        <div class="sidebody alt">
+        
+            {% ifequal error '1' %}
+                <p class="aviso-info">Tus datos no coinciden, por favor vuelve a escribirlos.</p>
+            {% endifequal %}
+            {% ifequal error '2' %}
+                <p class="aviso-info">Escribe tu contrase&ntilde;a.</p>
+            {% endifequal %}
+            {% ifequal error '3' %}
+                <p class="aviso-info">Escribe tu email.</p>
+            {% endifequal %}
+            {% ifequal error '4' %}
+            <p class="aviso-info">Tu cuenta a&uacute;n no ha sido activada. Revisa tu casilla de correo para hacer click en el link de activaci&oacute;n (click <a href="/send_activation_mail/{{ userkey }}/">aqu&iacute;</a> para reenviar el correo de activaci&oacute;n).</p>
+            {% endifequal %}
+            {% ifequal error '5' %}
+            <p class="aviso-info">Has intentado iniciar sesi&oacute;n con una cuenta de Facebook que posee un nombre de usuario ya existente en SubeTuQueja. Lo sentimos, pero no podr&aacute;s utilizar esa cuenta de Facebook para ingresar al sitio. Si lo deseas, puedes crear una cuenta en SubeTuQueja ingresando <a class="link-signup" href="#signup">aqu&iacute;</a></p>
+            {% endifequal %}
+            {% ifequal error '6' %}
+            <p class="aviso-info">Lo sentimos, ha ocurrido un error al intentar iniciar sesi&oacute;n con tu usuario de Facebook. Puedes volver a intentarlo, o crear una cuenta en SubeTuQueja ingresando <a class="link-signup" href="#signup">aqu&iacute;</a></p>
+            {% endifequal %}
+
+            {% include 'sitio/login_box.html' %}
+
+{% endblock %}
+
+

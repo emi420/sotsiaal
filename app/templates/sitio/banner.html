@@ -1,0 +1,30 @@
+                <div class="toostp-left"></div><div class="top-right"></div>
+                <div class="inside clearfix">
+                        <h3>&iquest;Qu&eacute; es Centro Cultural?</h3>
+                        <p>Centro Cultural es un sitio para compartir eventos</p>
+                    <p>
+                        <ul class="default">
+                                <li>Difundí tu arte</li>
+                                <li>Comparte ideas</li>
+                            <li>Debate con otras personas</li>
+                        </ul>
+                    </p>
+                    <p>
+                        An&iacute;mate a participar de esta nueva revoluci&oacute;n social
+                        {% ifequal user '' %}
+                            <strong><a href="/contact/">cont&aacute;ctanos</a></strong>
+                        {% else %}
+                                <strong><a href="/new_story/" title="crea un nuevo tema">crea un nuevo tema</a></strong>
+                        {% endifequal %}
+                    </p>
+                </div>
+                <div class="bottom-left"></div><div class="bottom-right"></div>
+				{% if user %}
+				{% ifnotequal is_home '1' %}
+				{% ifnotequal banner_no_button '1' %}
+					<br />
+	                    <a href="/new_story/" class="button button-welcome-action"><span>crea un nuevo tema</span></a>
+                {% endifnotequal %}
+                {% endifnotequal %}
+                {% endif %}
+

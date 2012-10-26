@@ -1,0 +1,7 @@
+    <ul class="hmenu main-menu">
+        <li class="first {% ifequal name '' %}selected{% endifequal %}"><a href="/">Todo</a></li>
+        {% for category in categories %}
+            <li {% ifequal name category.name %}class="selected"{% endifequal %}><a href="/{{ category.name }}/">{{ category.title }}</a></li>
+        {% endfor %}
+    </ul>
+

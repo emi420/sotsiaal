@@ -1,0 +1,95 @@
+            {% if allow_comments %}
+                <ul id="tx_control" class="pub-actions">
+                    <li class="selected"><a class="lnk-text" href="#lnktext"><span>Comentario</span></a></li>
+                    <li><a class="lnk-image" href="#lnkimage"><span>Imagen</span></a></li> 
+                    <li><a class="lnk-video" href="#lnkvideo"><span>Video / Audio</span></a></li>
+                    <li><a class="lnk-map" id="lnk-map" href="#lnkmap"><span>Mapa</span></a></li>
+                    {% if enable_bigfiles %}
+                    <li><a class="lnk-doc" href="#lnkdocument"><span>Archivo</span></a></li>
+                    {% endif %}
+                </ul>
+                <div class="clear-pub-actions"><!-- --></div>
+            <form class="enviar-mensaje formulario" id="sndfrm" action="{{ uploadurl }}" method="post" enctype="multipart/form-data" accept="utf-8">                	            
+            <div class="rbox cform">
+                        <!-- mensaje -->
+                        <div id="t_text" class="">
+                            <div class="clear"><!-- --></div>
+                        </div>
+                        <!-- imagen -->
+                        <div id="t_image" class="pub-img hidden">
+                            <span class="input-file"><input name="image" id="inputImgFile" type="file" /> <b id="fileMsg" class="bmsg"></b></span>
+                            <div class="clear"><!-- --></div>
+                        </div>
+                        <!-- mapa -->
+                        <div id="t_map" class="pub-map hidden">
+                            <span class="button small style2"><a onclick="searchAddress(document.getElementById('t_map_address').value)" href="#tmap">Buscar dirección</a></span>
+                            <input name="map_text" onkeypress="return checkEnter(event,'')" onclick="" type="text" value="Busca una dirección o arrasta el marcador" id="t_map_address" class="input-text address"/>
+                            <div id="map" class="map"></div>
+							<input type="hidden" name="map" id="map_latlng" value="-38.561984, -58.7297" />
+							<input type="hidden" name="map_zoom" id="map_zoom" value="1" />
+                        </div>
+                        <!-- video -->
+                        <div id="t_video" class="pub-vid hidden">
+                            <textarea name="video"  class="input-text" rows="1">[ Pega la URL YouTube aquí ]</textarea>
+                            <div class="clear"><!-- --></div>
+                       </div>
+                        <!-- archivo -->
+                        <div id="t_doc" class="pub-img hidden">
+                            <span class="input-file"><input name="document" type="file" /></span>
+                            <div class="clear"><!-- --></div>
+                        </div>
+                        <input type="hidden" value="{{ story.key }}" name="storyparent" />
+                        <input type="hidden" value="text" name="msg_type" id="msg_type2" />
+                        <input id="msg_id" name="msg_id" type="hidden" value="" />
+           </form>
+           <form id="ax_sndfrm" type="post" action="/add_message/" enctype="multipart/form-data" accept="utf-8">               
+                        <input type="hidden" value="{{ story.key }}" name="storyparent" />
+                        <input type="hidden" value="text" name="msg_type" id="msg_type" onchange="document.getElementById('msg_type2').value=this.value" />
+                       <textarea rows="5" name="title" id="msg_title" class="input-text" rows="1"></textarea>
+                        <span class="button small"><input type="submit" value="Enviar" onclick="send_msg()" /></span>
+                        <div class="clear"><!-- --></div>
+    					{% ifequal is_anon '1' %}
+    					<br />
+    						{{ captchahtml|safe }}
+    						<style type="text/css">
+    							#recaptcha_instructions_image { display: none !important }
+    							.recaptchatable #recaptcha_response_field { 
+    								font-family:arial;
+    								font-size:13pt;
+    								height:31px;
+    								padding:0 5px !important;
+    								width:132px !important;
+    							}
+    						</style>
+    					{% endifequal %}
+                    </div>
+                </form>
+            {% endif %}
+            <h2 class="pub-date"><span>{{msgs|length }} comentario(s)</span></h2>
+
+
+            <div id="story-messages">
+                {% include 'sitio/story_messages.html' %}
+            </div>
+
+            <script type="text/javascript">
+                $(document).ready(function() {
+					activateCommentControls();
+					
+					var options = { 
+						success:     showResponse  
+					}; 
+					var msg_type = document.getElementById('msg_type').value ;
+					$('#ax_sndfrm').ajaxForm(options);
+
+					function showResponse(responseText)  { 
+						document.getElementById('msg_id').value = responseText ;
+						document.getElementById('sndfrm').submit() ;
+					} 
+
+                });
+                function sendMsg() {
+					document.getElementById('ax_sndfrm').submit() ;
+                }
+            </script>
+

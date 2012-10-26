@@ -1,0 +1,122 @@
+{% extends 'sitio/base.html' %}
+
+{% block extra_heads %}
+    <link rel="alternate" type="application/rss+xml" title="Feed RSS" href="{{ feed_url }}" />
+{% endblock %}
+
+{% block content %}
+
+<!--box_welcome.html-->
+    {% if show_box_welcome %}
+        <div id="box-welcome" class="box welcome">
+            <!-- <a class="close" href="javascript: void()" onclick="document.getElementById('box-welcome').style.display = 'none'"><span>Cerrar</span></a> -->
+            <div class="top-left"></div><div class="top-right"></div>
+            <div class="inside">
+                <div class="box-welcome-content">
+                    {% if internal_mode %}
+                        <h1>Comparte temas con tus colegas de trabajo</h1>
+                        <p>
+                        Sotsiaal es un sitio para compartir temas y discutirlos con tus colegas de trabajo.<br />
+                       Particip&aacute; votando temas y comentarios, <strong>decid&iacute; con tu voto.</strong>
+                        </p>
+                    {% else %}
+                        <h1>Comparte tu historia, <strong>ayuda a otros</strong></strong></h1>
+                        <p>
+                        Cultura es una comunidad de usuarios dedicados a <strong>descubrir, difundir y opinar</strong> sobre eventos culturales.<br />
+                       Participa votando historias y comentarios, <strong>decide con tu voto.</strong>
+                        </p>
+                    {% endif %}
+                </div>
+                <div class="box-welcome-action">
+                    <br />
+                    {% if internal_mode %}
+                        <a class="button" href="/new_story/"><span>Nuevo tema</span></a>
+                    {% else %}
+                        <a class="button" href="/new_story/"><span>Nuevo tema</span></a>
+                    {% endif %}
+                </div>
+                <div class="clear"><!-- --></div>
+            </div>
+            <div class="bottom-left"></div><div class="bottom-right"></div>
+        </div>
+    {% endif %}
+
+<!--head.html-->
+    {% include 'sitio/categories_tabs.html' %}
+    <div class="content clearfix">
+        <div class="content-list-header">
+            <h2>{% if internal_mode %}Temas{% else %}Temas{% endif %} populares</h2>
+            <ul class="hmenu content-list-filter">
+                {% if not name %}
+                    <li{% ifequal popular '' %} class="selected"{% endifequal %}><a href="/">M&aacute;s populares</a></li>
+                    <li{% ifequal popular '1' %} class="selected"{% endifequal %}><a href="/{% ifequal name '' %}?popular=1{% else %}/{{ name }}/?popular=1{% endifequal %}">Top 24h</a></li>
+                    <li{% ifequal popular '7' %} class="selected"{% endifequal %}><a href="/{% ifequal name '' %}?popular=7{% else %}/{{ name }}/?popular=7{% endifequal %}">7 d&iacute;as</a></li>
+                    <li{% ifequal popular '30' %} class="selected"{% endifequal %}><a href="/{% ifequal name '' %}?popular=30{% else %}/{{ name }}/?popular=30{% endifequal %}">30 d&iacute;as</a></li>
+                    <li{% ifequal popular '365' %} class="selected"{% endifequal %}><a href="/{% ifequal name '' %}?popular=365{% else %}/{{ name }}/?popular=365{% endifequal %}">365 d&iacute;as</a></li>
+                {% else %}
+                    <li{% ifequal popular '1' %} class="selected"{% endifequal %} style="visibility: hidden"><a href="/{% ifequal name '' %}?popular=1{% else %}/{{ name }}/?popular=1{% endifequal %}">Top 24h</a></li>
+                    <li{% ifequal popular '7' %} class="selected"{% endifequal %} style="visibility: hidden"><a href="/{% ifequal name '' %}?popular=7{% else %}/{{ name }}/?popular=7{% endifequal %}">7 d&iacute;as</a></li>
+                    <li{% ifequal popular '30' %} class="selected"{% endifequal %} style="visibility: hidden"><a href="/{% ifequal name '' %}?popular=30{% else %}/{{ name }}/?popular=30{% endifequal %}">30 d&iacute;as</a></li>
+                    <li{% ifequal popular '365' %} class="selected"{% endifequal %} style="visibility: hidden"><a href="/{% ifequal name '' %}?popular=365{% else %}/{{ name }}/?popular=365{% endifequal %}">365 d&iacute;as</a></li>
+                    <li{% ifequal popular '' %} class="selected"{% endifequal %}><a href="/">M&aacute;s populares</a></li>
+                {% endif%}
+            </ul>
+        </div>
+        <div class="sidebody">
+
+<!--stories.html-->
+            {% if stories %}
+                {% for story in stories %}
+                    <div class="content-list-item {% if not story.image %} no-image {% endif %} ">
+                        <div class="content-list-content">
+                            <h3><a href="{{ story.generate_path }}">{{ story.title }}</a></h3>
+                            <p>{{ story.shortdesc }} ...</p>
+                            <ul class="content-list-item-menu">
+                                <li class="link-comment"><a href="{{ story.generate_path }}">{{ story.comments }} comentario(s)</a></li>
+                                <li class="link-user-img"><a href="/{{ story.author.nickname }}"><img src="/user_img/{{ story.author.key }}/avatar_mini/" alt="" /></a>
+                                por <a href="/{{ story.author.nickname }}">{{ story.author.nickname }}</a></li>
+                            </ul>
+                        </div>
+                        <ul class="content-list-vote">
+                            <li class="points"><strong id="pts-story-{{ story.key }}">{{ story.pop }}<!--({{story.karma}})--></strong></li>
+                            <li>voto(s)</li>
+                            <li class="vote">
+                                {% if user %}
+                                    <a onclick="javascript: doVoteStory('{{ story.key }}', 'add')" href="#vote_story" class="button-vote">Votar</a>
+                                {% else %}
+                                    <a onclick="javascript: $('#link-login-header').trigger('click');" href="#vote_story" class="button-vote">Votar</a>
+                                {% endif %}
+                            </li>
+                        </ul>
+                        {% if story.image %}
+                            <a href="{{ story.generate_path }}"><img class="content-list-image" src="/story_img/{{ story.key }}/" alt="{{ story.title }}" /></a>
+                        {% endif %}
+                        <div class="clear"><!-- --></div>
+                    </div>
+                    <div class="clear"><!-- --></div>
+                {% endfor %}
+                <div class="clear"><!-- --></div>
+
+                {% include 'sitio/stories_paginator.html' %}
+
+           {% else %}
+                <h2>Oops! no tenemos nada que mostrarte aqu&iacute;.</h2>
+                <ul class="default">
+                    {% if internal_mode %}
+                        <li>&iquest;Tienes algo interesante para contar? <a href="/new_story/"> crea un nuevo tema</a></li>
+                    {% else %}
+                        <li>&iquest;Tienes algo interesante para contar? <a href="/new_story/"> crea un nuevo tema</a></li>
+                    {% endif %}
+                    <li>Si lo deseas, puedes <a href="/">ir a la portada</a> del sitio.</li>
+                </ul>
+                <div class="find-box">
+                    <h3>Realiza una b&uacute;squeda</h3><br />
+                    <form action="/search/" method="get">
+                        <input class="input-text" type="text" name="q" value="{{ searchquery }}" />
+                        <span class="button"><input type="submit" value="Buscar" /></span>
+                    </form>
+                    <div class="clear"><!-- --></div>
+                </div>
+            {% endif %}
+
+{% endblock %}

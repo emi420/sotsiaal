@@ -1,0 +1,13 @@
+{% extends 'sitio/base.html' %}
+
+{% block content %}
+    <div class="content-header">
+        <a class="link-home" href="/">Inicio</a>
+    </div>
+    <div class="content clearfix">
+        <div class="sidebody alt">
+			<h1>Oops! algo ha fallado</h1>
+            <p class="aviso-info">Lo sentimos, pero {% if internal_mode %}el tema{% else %}la historia{% endif %} que deseas ver no existe, o ha sido bloqueado.</p>
+           <hr />
+            <br />
+{% endblock %}

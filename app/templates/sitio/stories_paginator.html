@@ -1,0 +1,19 @@
+{% if pages %}
+    {% ifnotequal pagecount 2 %}
+        <ul class="pager">
+            {% ifnotequal pageprev 0 %}
+                <li><a href="?page={{ pageprev }}{% ifnotequal popular '' %}&popular={{ popular }}{% endifnotequal %}" class="link-pag-prev">&laquo; Anterior</a></li>
+            {% endifnotequal %}
+            {% for i in pages %}
+                {% ifequal i page %}
+                    <li class="selected">{{ i }}</li>
+                {% else %}
+                    <li><a href="?page={{ i }}{% ifnotequal popular '' %}&popular={{ popular }}{% endifnotequal %}">{{ i }}</a></li>
+                {% endifequal %}
+            {% endfor %}
+            {% ifnotequal pagecount pagenext %}
+                <li><a href="?page={{ pagenext }}{% ifnotequal popular '' %}&popular={{ popular }}{% endifnotequal %}" class="link-pag-next">Siguiente &raquo;</a></li>
+            {% endifnotequal %}
+        </ul>
+    {% endifnotequal %}
+{% endif %}

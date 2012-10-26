@@ -1,0 +1,24 @@
+{% extends 'sitio/base.html' %}
+
+{% block content %}
+    <div class="content-header">
+        <a class="link-home" href="/">Inicio</a>
+    </div>
+    <div class="content clearfix">
+        <div class="sidebody alt">
+            {% ifequal error '1' %}
+                <p id="aviso-info-1" class="aviso-info">El nombre de usuario ya est&aacute; registrado, pero puedes elegir otro. &iexcl;Insp&iacute;rate!</p>
+                {% endifequal %}
+                {% ifequal error '2' %}
+                    <p id="aviso-info-2" class="aviso-info">&iexcl;Hey! completa todos los campos, no seas t&iacute;mido. </p>
+                {% endifequal %}
+                {% ifequal error '3' %}
+                    <p id="aviso-info-3" class="aviso-info">Las contrase&ntilde;as no coinciden. Por favor vuelve a escribirlas.</p>
+                {% endifequal %}
+                {% ifequal error '4' %}
+                <p id="aviso-info-4" class="aviso-info">Lo sentimos, pero el dominio no se encuentra autorizado.<br />Para solicitar cuentas para el dominio de tu empresa u organizaci&oacute;n, <a href="/contact/">cont&aacute;ctanos</a>.</p>
+                {% endifequal %}
+ 
+                {% include 'sitio/signup_box.html' %}
+
+{% endblock %}

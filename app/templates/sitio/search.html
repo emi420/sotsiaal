@@ -1,0 +1,53 @@
+{% extends 'sitio/base.html' %}
+
+{% block content %}
+    <div class="content-header">
+        <a class="link-home" href="/">Inicio</a>
+    </div>
+    <div class="content clearfix">
+        <div class="sidebody alt">
+            <br />
+            <h1>Buscar</h1>
+            <div class="find-box">
+                <form action="/search/" method="get">
+                    <input class="input-text" type="text" name="q" value="{{ searchquery }}" />	
+                    <span class="button"><input type="submit" value="Buscar" /></span>
+                    {% csrf_token %}
+                </form>
+                <div class="clear"><!-- --></div>
+            </div>
+            <br /><hr />
+            <br />
+            {% for story in stories %}
+                <div class="content-list-item {% if not story.image %} no-image {% endif %} ">
+                    <div class="content-list-content">
+                        <h3><a href="{{ story.generate_path }}">{{ story.title }}</a></h3>
+                        <p>{{ story.shortdesc }} ...</p>
+                        <ul class="content-list-item-menu">
+                            <li class="link-comment"><a href="{{ story.generate_path }}">{{ story.comments }} comentario(s)</a></li>
+                            <li class="link-user-img"><a href="/{{ story.author.nickname }}"><img src="/user_img/{{ story.author.key }}/avatar_mini/" alt="" /></a> por <a href="/{{ story.author.nickname }}">{{ story.author.nickname }}</a></li>
+                        </ul>
+                    </div>
+                    <ul class="content-list-vote">
+                        <li class="points"><strong id="pts-story-{{ story.key }}">{{ story.pop }}</strong></li>
+                        <li>votos</li>
+                        {% if user %}
+                            <li class="vote"><a onclick="javascript: doVoteStory('{{ story.key }}', 'add')" href="#vote_story" class="button-vote">Votar</a></li>
+                        {% else %}
+                            <li class="vote"><a onclick="javascript: $('#link-login-header').trigger('click');" href="#vote_story" class="button-vote">Votar</a></li>
+                        {% endif %}
+                    </ul>
+                    {% if story.image %}
+                        <a href="{{ story.generate_path }}"><img class="content-list-image" src="/story_img/{{ story.key }}/" alt="{{ story.title }}" /></a>
+                    {% endif %}
+                    <div class="clear"><!-- --></div>
+                </div>
+                <div class="clear"><!-- --></div>
+            {% endfor %}
+            <div class="clear"><!-- --></div>
+
+            {% with '' as popular %}
+                {% include 'sitio/stories_paginator.html' %}
+            {% endwith %}
+
+{% endblock %}
