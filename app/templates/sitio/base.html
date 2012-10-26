@@ -56,7 +56,7 @@
 	   SyntaxHighlighter.all();
     </script>-->
 </head>
-<body{% ifnotequal userprofile '' %} class="alt" style="background: #ffffff url(/user_img/{{ userprofile.key }}/background/) fixed repeat" {% endifnotequal %}>
+<body{% ifnotequal userprofile '' %} class="alt" style="background: #ffffff url(/user_img/{{ userprofile.id }}/background/) fixed repeat" {% endifnotequal %}>
 <div class="container{% ifnotequal userprofile '' %} alt{% endifnotequal %}">
     <div class="main">
 	{% block content %}
@@ -97,7 +97,7 @@
 						{% for follower in followers %}
 							<li>
 								<a title="{{ follower.user.nickname }}" href="/{{ follower.user.nickname }}">
-								<img alt="{{ follower.user.nickname }}" class="avatar alt" src="/user_img/{{ follower.user.key }}/"></img>
+								<img alt="{{ follower.user.nickname }}" class="avatar alt" src="/user_img/{{ follower.user.id }}/"></img>
 							</a>
 							</li>
 						{% endfor %}
@@ -112,12 +112,12 @@
 					<li {% if story.image %}{% else %}class="no-image"{% endif %} >
 						<p><a href="{{ story.generate_path }}">{{ story.title }}</a></p>
 						{% if story.image %}
-							<a class="ico-item" href="{{ story.generate_path }}"><img width="30px" src="/story_img/{{ story.key }}/" alt="" /></a>
+							<a class="ico-item" href="{{ story.generate_path }}"><img width="30px" src="/story_img/{{ story.id }}/" alt="" /></a>
 						{% endif %}
 						{% if user %}
-							<a onclick="javascript: doVoteStory('{{ story.key }}', 'add')" class="featured-item-vote" href="#vote_story"><span id="pts-story-{{ story.key }}">{{ story.pop }}</span></a>
+							<a onclick="javascript: doVoteStory('{{ story.id }}', 'add')" class="featured-item-vote" href="#vote_story"><span id="pts-story-{{ story.id }}">{{ story.pop }}</span></a>
 						{% else %}
-							<a onclick="javascript: $('#link-login-header').trigger('click');" class="featured-item-vote" href="#vote_story"><span id="pts-story-{{ story.key }}">{{ story.pop }}</span></a>
+							<a onclick="javascript: $('#link-login-header').trigger('click');" class="featured-item-vote" href="#vote_story"><span id="pts-story-{{ story.id }}">{{ story.pop }}</span></a>
 						{% endif %}
 						<div class="clear"><!-- --></div>
 					</li>

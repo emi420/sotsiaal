@@ -1,18 +1,19 @@
-                    <div class="thread" id="thread-{{ parent_reply.key }}">
+                    <div class="thread" id="thread-{{ parent_reply.id }}">
                         <br />
                         <form class="enviar-mensaje formulario" action="/add_message/" method="post">
-							<div id="reply-form-{{ parent_reply.key }}" style="display:none" class="reply first cform">
+							<div id="reply-form-{{ parent_reply.id }}" style="display:none" class="reply first cform">
 								<textarea name="title" onclick="this.select();" class="input-text alt" rows="1">{{ default_comment_text }}</textarea>
-								<input type="hidden" value="{{ parent_reply.key }}" name="replytor" />
+								<input type="hidden" value="{{ parent_reply.id }}" name="replytor" />
 								<span class="button small"><input type="submit" value="Responder" /></span>
 							</div>
+							{% csrf_token %}
 					    </form>
                             {% for reply in parent_reply.sub_replies %}
-                                <div class="reply{% if reply.classname %}-{{ reply.classname }}{% endif %}" id="reply-{{ reply.key }}">                             
-                                    <div class="reply-inside" id="reply-inside-{{ reply.key }}">
+                                <div class="reply{% if reply.classname %}-{{ reply.classname }}{% endif %}" id="reply-{{ reply.id }}">                             
+                                    <div class="reply-inside" id="reply-inside-{{ reply.id }}">
                                     {% if not reply.status %}
                                         <div class="user-info">
-                                            <a href="/{{ reply.author.nickname}}"><img class="avatar" src="/user_img/{{ reply.author.key }}/avatar_mini/" alt="" /></a>
+                                            <a href="/{{ reply.author.nickname}}"><img class="avatar" src="/user_img/{{ reply.author.id }}/avatar_mini/" alt="" /></a>
                                             <h3><a href="/{{ reply.author.nickname}}">{{ reply.author.nickname }}</a>
                                                 <span class="date">hace  
                                                     {% ifequal reply.difference_unit '1' %} instantes {% endifequal %}
@@ -23,36 +24,36 @@
                                             </h3>
                                         </div>
                                         <p class="title">{{ reply.title|urlize|linebreaksbr }} </p>
-                                        <p>{% ifequal reply.classname 'hidden'%} <p class="showmsg" ><a onclick="document.getElementById('reply-{{ reply.key }}').setAttribute('class','reply')" href="javascript: return void()">Comentario enterrado</a></p>{% endifequal %} 
-                                        {% ifequal reply.classname 'hidden'%} <p class="hidemsg" ><a onclick="document.getElementById('reply-{{ reply.key }}').setAttribute('class','reply-hidden')" href="javascript: return void()">Esconder</a></p>{% endifequal %} 
+                                        <p>{% ifequal reply.classname 'hidden'%} <p class="showmsg" ><a onclick="document.getElementById('reply-{{ reply.id }}').setAttribute('class','reply')" href="javascript: return void()">Comentario enterrado</a></p>{% endifequal %} 
+                                        {% ifequal reply.classname 'hidden'%} <p class="hidemsg" ><a onclick="document.getElementById('reply-{{ reply.id }}').setAttribute('class','reply-hidden')" href="javascript: return void()">Esconder</a></p>{% endifequal %} 
                                         </p>
                                     </div>
                                     <div class="clear"><!-- --></div>
                                     
                                     {% if user.is_admin %}
-                                        <a onclick="javascript: doDeleteReply('{{ reply.key }}')" href="#delete_reply" id="deletereply-{{ reply.key }}"><span>borrar</span></a>
-                                        <a href="/admin/hard_delete_reply/{{ reply.key }}/"><span>borrar definitivamente</span></a>
+                                        <a onclick="javascript: doDeleteReply('{{ reply.id }}')" href="#delete_reply" id="deletereply-{{ reply.id }}"><span>borrar</span></a>
+                                        <a href="/admin/hard_delete_reply/{{ reply.id }}/"><span>borrar definitivamente</span></a>
                                     {% endif %}
 
                                     <div class="comment-actions">
 
                                         {% if user %}
-                                            <a onclick="javascript: doVoteReply('{{ reply.key }}', 'add')" class="lnk-promote" href="#vote_reply"><span>Votar</span></a>
-                                            <a onclick="javascript: doVoteReply('{{ reply.key }}', 'remove')" class="lnk-bury" href="#vote_reply"><span>Enterrar</span></a>
+                                            <a onclick="javascript: doVoteReply('{{ reply.id }}', 'add')" class="lnk-promote" href="#vote_reply"><span>Votar</span></a>
+                                            <a onclick="javascript: doVoteReply('{{ reply.id }}', 'remove')" class="lnk-bury" href="#vote_reply"><span>Enterrar</span></a>
                                         {% else %}
                                             <a onclick="javascript: $('#link-login-header').trigger('click');" class="lnk-promote" href="#vote_reply"><span>Votar</span></a>
                                             <a onclick="javascript: $('#link-login-header').trigger('click');" class="lnk-bury" href="#vote_reply"><span>Enterrar</span></a>
                                         {% endif %}
 
-                                        <span class="pts" id="pts-reply-{{ reply.key }}">
+                                        <span class="pts" id="pts-reply-{{ reply.id }}">
                                             {{ reply.pop }}
                                         </span> 
                                         <div class="clear"><!-- --></div>
                                     {% else %}
                                         <p>Comentario borrado</p> 
                                         {% if user.is_admin %}
-                                            <a href="/admin/enable_reply/{{ reply.key }}/"><span>Recuperar mensaje</span></a>
-                                            <a href="/admin/hard_delete_reply/{{ reply.key }}/"><span>borrar definitivamente</span></a>
+                                            <a href="/admin/enable_reply/{{ reply.id }}/"><span>Recuperar mensaje</span></a>
+                                            <a href="/admin/hard_delete_reply/{{ reply.id }}/"><span>borrar definitivamente</span></a>
                                         {% endif %}
                                     {% endif %}
                                     </div>
@@ -61,7 +62,7 @@
 
                                 <div class="clear"><!-- --></div>
                                 {% if allow_comments %}
-                                    <a class="lnk-reply" href="javascript: return void()" onclick="document.getElementById('reply-form-{{ reply.key }}').style.display='block'" ><span>Responder</span></a>                       
+                                    <a class="lnk-reply" href="javascript: return void()" onclick="document.getElementById('reply-form-{{ reply.id }}').style.display='block'" ><span>Responder</span></a>                       
                                 {% endif %}
 
                                 {{ reply.sub_replies_html }}

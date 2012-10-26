@@ -19,23 +19,23 @@
             <hr />
             <form class="default-form edit-profile" action="/save_profile/" enctype="multipart/form-data" method="post">
                 <label>Avatar</label><br />
-                <label class="img-container"><img id="img-current-avatar" class="avatar" src="/user_img/{{ user.key }}/"></img></label>
+                <label class="img-container"><img id="img-current-avatar" class="avatar" src="/user_img/{{ user.id }}/"></img></label>
                 <span class="default">El tama&ntilde;o de la imagen debe ser menor a 1mb</span> 
                 <p class="alt"><span id="avatar" class="input-file"><input name="img" type="file" /></span></p>
                 {% if user.avatar %}
-                    <p id="delete-current-avatar" class="delete-current"><a href="#deletecurrentavatar" onclick="javascript: doDeleteCurrentAvatar('{{ user.key }}')">Borrar actual</a></p>
+                    <p id="delete-current-avatar" class="delete-current"><a href="#deletecurrentavatar" onclick="javascript: doDeleteCurrentAvatar('{{ user.id }}')">Borrar actual</a></p>
                 {% endif %}
                 <hr class="clear" /><hr />
                 <label>Imagen de fondo</label><br />
-                <label class="img-container"><img height="50" width="50" id="img-current-bg" class="avatar" width="49" src="/user_img/{{ user.key }}/background/"></img></label>
+                <label class="img-container"><img height="50" width="50" id="img-current-bg" class="avatar" width="49" src="/user_img/{{ user.id }}/background/"></img></label>
                 <span class="default">El tama&ntilde;o de la imagen debe ser menor a 1mb</span> 
                 <p class="alt"><span class="input-file"><input name="imgbg" type="file" /></span></p>
                 {% if user.background %}
-                    <p id="delete-current-bg" class="delete-current"><a onclick="javascript: doDeleteCurrentBg('{{ user.key }}')" href="#deletecurrentbg">Borrar actual</a></p>
+                    <p id="delete-current-bg" class="delete-current"><a onclick="javascript: doDeleteCurrentBg('{{ user.id }}')" href="#deletecurrentbg">Borrar actual</a></p>
                 {% endif %}
                 <hr class="clear" /><hr />
                 <label>Banner</label><br />
-                <label class="img-container"><img height="50" width="50" id="img-current-banner" class="avatar" width="49" src="/user_img/{{ user.key }}/banner/"></img></label>
+                <label class="img-container"><img height="50" width="50" id="img-current-banner" class="avatar" width="49" src="/user_img/{{ user.id }}/banner/"></img></label>
                 <span class="default">El tama&ntilde;o de la imagen debe ser menor a 1mb</span> 
                 <p class="alt"><span class="input-file"><input name="imgbanner" type="file" /></span></p>
                 <hr class="clear" /><hr />
@@ -100,7 +100,7 @@
             </form>
             <br />
             <h2><a onclick="document.getElementById('delete-account').style.display='block'" class="expand" href="#delete-account">Borrar mi cuenta</a></h2>
-            <form {% ifnotequal error '2' %} style="display:none" {% endifnotequal %}class="default-form edit-profile" id="delete-account" action="/send_deletion_mail/{{ user.key }}/" enctype="multipart/form-data" method="post">
+            <form {% ifnotequal error '2' %} style="display:none" {% endifnotequal %}class="default-form edit-profile" id="delete-account" action="/send_deletion_mail/{{ user.id }}/" enctype="multipart/form-data" method="post">
 				<br>
 				<h2>Por favor, cu&eacute;ntanos &iquest;por qué nos dejas?</h2>
                 <textarea name="deletion_msg" class="textarea"></textarea>

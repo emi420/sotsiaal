@@ -43,19 +43,19 @@
                         {% if user %}
 		                        {% if not usrburied %}
 									{% if not usrvoted %}
-										<li class="link-bury" id="link-bury"><a onclick="javascript: doVoteStory('{{ story.key }}', 'remove');" href="#vote_story"><span>Enterrar</span></a></li>
+										<li class="link-bury" id="link-bury"><a onclick="javascript: doVoteStory('{{ story.id }}', 'remove');" href="#vote_story"><span>Enterrar</span></a></li>
 									{% endif %}
                                 {% endif %}
                                 {% if user.is_admin %}
                                     {% if story.status %}
-                                        <li><a href="/admin/enable_story/{{ story.key }}/"><span>Desbloquear {% if internal_mode %}tema{% else %}historia{% endif %}</span></a></li>
+                                        <li><a href="/admin/enable_story/{{ story.id }}/"><span>Desbloquear {% if internal_mode %}tema{% else %}historia{% endif %}</span></a></li>
                                     {% else %}
-                                        <li><a href="/admin/block_story/{{ story.key }}/"><span>Bloquear {% if internal_mode %}tema{% else %}historia{% endif %}</span></a></li>
+                                        <li><a href="/admin/block_story/{{ story.id }}/"><span>Bloquear {% if internal_mode %}tema{% else %}historia{% endif %}</span></a></li>
                                     {% endif %}
                                 {% endif %}
                                 
                                 {% ifequal user.key  story.author.key %}
-                                <li><a href="/delete_story/{{ story.key }}/"><span>Borrar {% if internal_mode %}tema{% else %}historia{% endif %}</span></a></li>
+                                <li><a href="/delete_story/{{ story.id }}/"><span>Borrar {% if internal_mode %}tema{% else %}historia{% endif %}</span></a></li>
                                 {% endifequal %}
                         {% else %}
                             <li class="link-" id="link-bury"><a onclick="javascript: $('#link-login-header').trigger('click');" href="#vote_story"><span>Enterrar</span></a></li>
@@ -64,13 +64,13 @@
                     </ul>
                 </div>
                 <ul class="content-list-vote">
-                    <li class="points"><strong id="pts-story-{{ story.key }}">{{ story.pop }}</strong></li>
+                    <li class="points"><strong id="pts-story-{{ story.id }}">{{ story.pop }}</strong></li>
                     <li>vote(s)</li>
                     <li class="vote" id="vote-button-li">
                         {% if user %}
 		                        {% if not usrvoted %}
 									 {% if not usrburied %}
-										<a onclick="javascript: doVoteStory('{{ story.key }}', 'add')" href="#vote_story" class="button-vote" id="button-vote">Votar</a>
+										<a onclick="javascript: doVoteStory('{{ story.id }}', 'add')" href="#vote_story" class="button-vote" id="button-vote">Votar</a>
 									 {% else %}
 										Buried
 									 {% endif %}
@@ -83,10 +83,10 @@
                     </li>
                 </ul>
                 {% if story.avatar %}
-                    <a target="_blank" href="/story_original_img/{{ story.key }}/"><img class="content-list-image" src="/story_original_img/{{ story.key }}/" alt="{{ story.title }}" /></a>
+                    <a target="_blank" href="/story_original_img/{{ story.id }}/"><img class="content-list-image" src="/story_original_img/{{ story.id }}/" alt="{{ story.title }}" /></a>
                 {% else %}
 					{% if story.image %}
-						<a target="_blank" href="/story_original_img/{{ story.key }}/"><img class="content-list-image" src="/story_img/{{ story.key }}/" alt="{{ story.title }}" /></a>						
+						<a target="_blank" href="/story_original_img/{{ story.id }}/"><img class="content-list-image" src="/story_img/{{ story.id }}/" alt="{{ story.title }}" /></a>						
 					{% endif %}
                 {% endif %}
             </div>
@@ -131,13 +131,13 @@
     <div class="content-header">
         <a class="link-home" href="/">Inicio</a>
         <ul class="menu-tabs">
-            <li id="story-menu-item1" class="selected"><a href="#storywall" onclick="getStoryWall('{{ story.key }}')">Discusión</a></li>
+            <li id="story-menu-item1" class="selected"><a href="#storywall" onclick="getStoryWall('{{ story.id }}')">Discusión</a></li>
             {% if internal_mode %}
-                <li id="story-menu-item2" class="style1"><a href="#storyfollowers" onclick="getStoryFollowers('{{ story.key }}')">&iquest;Qui&eacute;nes votaron este tema?</a></li>
+                <li id="story-menu-item2" class="style1"><a href="#storyfollowers" onclick="getStoryFollowers('{{ story.id }}')">&iquest;Qui&eacute;nes votaron este tema?</a></li>
             {% else %}
-                <li id="story-menu-item2" class="style1"><a href="#storyfollowers" onclick="getStoryFollowers('{{ story.key }}')">&iquest;Quiénes votaron este tema?</a></a></li>
+                <li id="story-menu-item2" class="style1"><a href="#storyfollowers" onclick="getStoryFollowers('{{ story.id }}')">&iquest;Quiénes votaron este tema?</a></a></li>
             {% endif %}
-            <li id="story-menu-item3" class="style2"><a href="#storyprint" onclick="getStoryPrintOptions('{{ story.key }}')">&iexcl;Act&uacute;a ahora!</a></li>
+            <li id="story-menu-item3" class="style2"><a href="#storyprint" onclick="getStoryPrintOptions('{{ story.id }}')">&iexcl;Act&uacute;a ahora!</a></li>
         </ul>
     </div>
 

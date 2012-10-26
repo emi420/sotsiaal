@@ -73,9 +73,13 @@ def add_common_context(request, context, title = '', description = '', sidebar_s
     elif sidebar_style == SIDEBAR_PROFILE:
         # user profile
         classname = 'inner-sidebar profile'
-        following_query = Relationship.objects.get(friend=user_profile)
-        followers_count = following_query.count()
-        followers = following_query.fetch(20)
+        try:
+            followers = Relationship.objects.filter(friend=user_profile)
+            followers_count = followers.count()
+        except:
+            followers = []
+            followers_count = 0
+            
     elif sidebar_style == SIDEBAR_NOAD:
         classname = 'inner-sidebar noad'
     else:
@@ -244,7 +248,7 @@ def story(request, category_key, story_url):
         story = Story.objects.get(url=urlquote(story_url))
         #memcache.set('story_' + story_url, story, 60)
 
-    if story and (not story.status or (user and user.is_admin)) and story.site == request.session['site']:
+    if story and (not story.status or (user and user.is_admin)):
         if story.author.background:
             add_common_context(request, context, story.title, user_profile = story.author,  sidebar_style = SIDEBAR_BASIC)
         else:
@@ -295,7 +299,7 @@ def story(request, category_key, story_url):
 
         context['captchahtml'] = chtml
         context['enable_bigfiles'] = settings.ENABLE_BIGFILES
-        context['uploadurl'] = blobstore.create_upload_url('/upload_blob/')        
+        #context['uploadurl'] = blobstore.create_upload_url('/upload_blob/')        
         context['story'] = story
         context['error'] = request.GET.get('error', '')
         context['sidebar_stories'] = related_stories
@@ -493,22 +497,27 @@ def view_profile(request, user_nickname):
     add_stories_context(request, context, stories)
 
     # followers
-    followers_query = Relationship.filter(friend=view_user) 
-    followers = followers_query.fetch(20)
-
-    following_query = Relationship.filter(friend=view_user,user=user)
-    following = following_query.count()
-
+    try:
+        followers = Relationship.objects.filter(friend=view_user) 
+    except:
+        followers = []
+        
+    try:
+        following = Relationship.objects.filter(friend=view_user,user=user)
+    except:
+        following = []
+        
     context['user'] = user
     context['viewuser'] = view_user
     context['followers'] = followers
     context['following'] = following
     context['stories_count'] = stories_count
-    if view_user.email[view_user.email.find('@') + 1 : len(view_user.email)]  == request.session['site'].domain:
-        return render_to_response('sitio/view_profile.html', context,
+    #FIXME CHECK
+    #if view_user.email[view_user.email.find('@') + 1 : len(view_user.email)] == request.session['site'].domain:
+    return render_to_response('sitio/view_profile.html', context,
 	                              context_instance=RequestContext(request))
-    else:
-        return HttpResponseRedirect('/')
+    #else:
+    #    return HttpResponseRedirect('/')
 
 def pass_recovery(request):
     '''Pass recovery page.'''
@@ -1030,10 +1039,11 @@ def add_story(request):
             story.category = category
             story.pop = 1
             story.karma = 10
+            story.hkarma = 0
             url_img_value = request.POST.get('url_img_value', '')
             if( url_img_value ):
                 image = urllib.urlopen(url_img_value).read()
-                #TODO
+                #FIXME CHECK
                 story.avatar = image #db.Blob(images.resize(image, 78, 78))
                 story.image = image #db.Blob(image)
             else:
@@ -1110,7 +1120,7 @@ def add_message(request):
             reply.replyto = msg
             reply.author = usr
             reply.title = request.POST.get('title', '')
-
+            reply.status = 0
             reply.pop = 0
             reply.save()
 
@@ -1135,7 +1145,7 @@ def add_message(request):
     # sub replies
     elif 'replytor' in request.POST:
         key_name = request.POST.get('replytor', '')
-        parent_reply = db.get(db.Key(key_name))
+        parent_reply = Reply.objects.get(id=key_name)
 		
         parent_story = parent_reply
         search = True
@@ -1203,7 +1213,8 @@ def add_message(request):
     else:
         challenge = request.POST.get('recaptcha_challenge_field')
         response  = request.POST.get('recaptcha_response_field')
-        remoteip  = environ['REMOTE_ADDR']
+        #FIXME
+        remoteip  = '' #environ['REMOTE_ADDR']
         cResponse = captcha.submit(
                          challenge,
                          response,
@@ -1220,7 +1231,8 @@ def add_message(request):
             pass
                     
         key_name = request.POST.get('storyparent', '')
-        story = db.get(db.Key(key_name))
+        #import pdb; pdb.set_trace()
+        story = Story.objects.get(id=key_name)
 
         if cResponse.is_valid or usr:
             if ( usr == None or use_anonymous):
@@ -1235,7 +1247,7 @@ def add_message(request):
                     msg.client_ip = request.META['REMOTE_ADDR']
                 msg.storyparent = story
                 msg.author = usr
-                msg.title = db.Text(request.POST.get('title', ''))
+                msg.title = request.POST.get('title', '')
                 if msg.title == settings.DEFAULT_COMMENT_TEXT:
                     msg.title = ''
     
@@ -1245,6 +1257,7 @@ def add_message(request):
                     save = msg.title
                 if save:
                     msg.pop = 0
+                    msg.status = 0
                     msg.save()
     
                     story.author.pop += 1
@@ -1263,19 +1276,19 @@ def add_message(request):
                                                 {'title': story.title,
                                                  'link': story.generate_path()})
                         mail.send_mail(sender_adress, receiver_address, subject, body)    
-            #return HttpResponseRedirect(story.generate_path())
-            return HttpResponse(str(msg.id))
+            return HttpResponseRedirect(story.generate_path())
+            #return HttpResponse(str(msg.id))
         else:
-#            return HttpResponseRedirect(story.generate_path() + '?error=1')
-            return HttpResponse('0')
+            return HttpResponseRedirect(story.generate_path() + '?error=1')
+            #return HttpResponse('0')
 
 
 @internal_logged_or_fail
 def add_message_attach(request):
 	msg_key = request.POST.get('msg_id', '')
-	msg = db.get(db.Key(msg_key))
+	msg = Msg.objects.get(id=msg_key)
 	key_name = request.POST.get('storyparent', '')
-	story = db.get(db.Key(key_name))
+	story = Story.objects.get(id=key_name)
 	
 	if msg.msg_type == 'video':
 	    msg.video = request.POST.get('video', '')
@@ -1309,7 +1322,7 @@ def popular_users(request):
     '''Popular users ranking.'''
     context = {}
 
-    users = User.all().order_by('-pop')
+    users = User.objects.all().order_by('-pop')
     add_common_context(request, context)
     context['users'] = users
 
@@ -1363,7 +1376,7 @@ def send_recovery_pass(request):
 def admin_send_recovery_pass(request, userkey):
     '''Send recovery pass message.'''
     # FIXME check, is migrated code for POST method
-    usr = db.get(db.Key(userkey))
+    usr = User.objects.get(id=userkey)
     if usr:
         if not mail.is_email_valid(usr.email):
             return HttpResponseRedirect('/admin/users/')
@@ -1385,7 +1398,7 @@ def admin_send_recovery_pass(request, userkey):
 
 def send_activation_mail(request, user_key):
     '''Send account activation message.'''
-    usr = db.get(db.Key(user_key))
+    usr = User.objects.get(id=user_key)
     if usr:
         sender_adress = settings.SITE_MAIL
         receiver_address = usr.email
@@ -1401,7 +1414,7 @@ def send_activation_mail(request, user_key):
 
 def send_deletion_mail(request, user_key):
     '''Send account deletion message.'''
-    usr = db.get(db.Key(user_key))
+    usr = User.objects.get(id=user_key)
     if usr:
         usr.deletion_key = hashlib.md5(str(random.random())).hexdigest()
         usr.deletion_msg = request.POST.get('deletion_msg', '')
@@ -1519,7 +1532,7 @@ def add_category(request):
 @admin_required
 def delete_category(request, categorykey):
     '''Delete category.'''
-    category = db.get(db.Key(categorykey))
+    category = Category.objects.get(id=categorykey)
     if category:
         category.delete()
     return HttpResponseRedirect('/admin/categories/')
@@ -1527,7 +1540,7 @@ def delete_category(request, categorykey):
 @admin_required
 def edit_category(request, categorykey):
     '''Edit category.'''
-    category = db.get(db.Key(categorykey))
+    category = Category.objects.get(id=categorykey)
     if category:
         if request.method == 'POST':
             category.title = request.POST.get('title', '')
@@ -1558,7 +1571,7 @@ def add_site(request):
 @admin_required
 def delete_site(request, sitekey):
     '''Delete site.'''
-    site = db.get(db.Key(sitekey))
+    site = Site.objects.get(id=sitekey)
     if site:
         site.delete()
     return HttpResponseRedirect('/admin/sites/')
@@ -1566,7 +1579,7 @@ def delete_site(request, sitekey):
 @admin_required
 def edit_site(request, sitekey):
     '''Edit site.'''
-    site = db.get(db.Key(sitekey))
+    site = Site.objects.get(id=sitekey)
     if site:
         if request.method == 'POST':
             site.title = request.POST.get('title', '')
@@ -1587,7 +1600,7 @@ def edit_site(request, sitekey):
 @admin_required
 def reset_account(request, userkey):
     '''Reset account.'''
-    user = db.get(db.Key(userkey))
+    user = User.objects.get(id=userkey)
     if user:
         user.avatar = None
         user.avatar_big = None
@@ -1607,21 +1620,19 @@ def reset_account(request, userkey):
 @admin_required
 def admin_edit_profile(request, userkey):
     '''Edit profile.'''
-    user = db.get(db.Key(userkey))
+    user = User.objects.get(id=userkey)
     if user:
         if request.method == 'POST':
             if 'img' in request.FILES:
                 try:
+                    #FIXME: CHECK
                     image = request.FILES['img'].read()
-                    user.avatar = db.Blob(images.resize(image, 49, 49))
-                    user.avatar_big = db.Blob(image)
-                    user.avatar_mini = db.Blob(images.resize(image, 16, 16))
-                    user.avatar_med = db.Blob(images.resize(image, 128, 128))
+                    user.avatar = image #db.Blob(images.resize(image, 49, 49))
                 except:
                     return HttpResponseRedirect('/admin/users/') # image error, possibly a too big file
             if 'imgbg' in request.FILES:
                 try:
-                    user.background = db.Blob(request.FILES['imgbg'].read())
+                    user.background = request.FILES['imgbg'].read()
                 except:
                     return HttpResponseRedirect('/admin/users/') # image error, possibly a too big file
             user.name = request.POST.get('name', '')
@@ -1647,7 +1658,7 @@ def admin_edit_profile(request, userkey):
 @internal_login_required
 def user_img(request, user_key, img_type = ''):
     '''Get formated user image.'''
-    usr = db.get(db.Key(user_key))
+    usr = User.objects.get(id=userkey)
     image_data = None
     if img_type == '':
         if usr.avatar:
@@ -1684,7 +1695,7 @@ def user_img(request, user_key, img_type = ''):
 @internal_login_required
 def story_img(request, story_key):
     '''Get formated story image.'''
-    story = db.get(db.Key(story_key))
+    story = Story.objects.get(id=story_key)
     if story.avatar:
         image_data = story.avatar
     else:
@@ -1694,7 +1705,7 @@ def story_img(request, story_key):
 @internal_login_required
 def story_original_img(request, story_key):
     '''Get formated story image.'''
-    story = db.get(db.Key(story_key))
+    story = Story.objects.get(id=story_key)
     if story.image:
         image_data = story.image
     else:

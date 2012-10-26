@@ -73,23 +73,23 @@
                             <p>{{ story.shortdesc }} ...</p>
                             <ul class="content-list-item-menu">
                                 <li class="link-comment"><a href="{{ story.generate_path }}">{{ story.comments }} comentario(s)</a></li>
-                                <li class="link-user-img"><a href="/{{ story.author.nickname }}"><img src="/user_img/{{ story.author.key }}/avatar_mini/" alt="" /></a>
+                                <li class="link-user-img"><a href="/{{ story.author.nickname }}"><img src="/user_img/{{ story.author.id }}/avatar_mini/" alt="" /></a>
                                 por <a href="/{{ story.author.nickname }}">{{ story.author.nickname }}</a></li>
                             </ul>
                         </div>
                         <ul class="content-list-vote">
-                            <li class="points"><strong id="pts-story-{{ story.key }}">{{ story.pop }}<!--({{story.karma}})--></strong></li>
+                            <li class="points"><strong id="pts-story-{{ story.id }}">{{ story.pop }}<!--({{story.karma}})--></strong></li>
                             <li>voto(s)</li>
                             <li class="vote">
                                 {% if user %}
-                                    <a onclick="javascript: doVoteStory('{{ story.key }}', 'add')" href="#vote_story" class="button-vote">Votar</a>
+                                    <a onclick="javascript: doVoteStory('{{ story.id }}', 'add')" href="#vote_story" class="button-vote">Votar</a>
                                 {% else %}
                                     <a onclick="javascript: $('#link-login-header').trigger('click');" href="#vote_story" class="button-vote">Votar</a>
                                 {% endif %}
                             </li>
                         </ul>
                         {% if story.image %}
-                            <a href="{{ story.generate_path }}"><img class="content-list-image" src="/story_img/{{ story.key }}/" alt="{{ story.title }}" /></a>
+                            <a href="{{ story.generate_path }}"><img class="content-list-image" src="/story_img/{{ story.id }}/" alt="{{ story.title }}" /></a>
                         {% endif %}
                         <div class="clear"><!-- --></div>
                     </div>

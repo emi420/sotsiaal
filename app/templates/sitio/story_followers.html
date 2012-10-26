@@ -10,7 +10,7 @@
 <ul class="followers">
     {% for vote in votes %}
 		{% if vote %}
-			<li><a class="link-user" href="/{{ vote.author.nickname }}"><img class="avatar" src="/user_img/{{ vote.author.key }}/avatar_mini/" alt="{{ vote.author.nickname }}" /></a> <a class="username" href="/{{ vote.author.nickname }}">{{ vote.author.nickname }}</a></li>
+			<li><a class="link-user" href="/{{ vote.author.nickname }}"><img class="avatar" src="/user_img/{{ vote.author.id }}/avatar_mini/" alt="{{ vote.author.nickname }}" /></a> <a class="username" href="/{{ vote.author.nickname }}">{{ vote.author.nickname }}</a></li>
 		{% endif %}
     {% endfor %}
 </ul>
