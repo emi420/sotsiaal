@@ -28,15 +28,36 @@ class User(models.Model):
     pop = models.IntegerField()
     unsearchable_properties = [ 'url', 'bio', 'location',  'password', 'recovery_key', 'email','activation_key','deletion_key','deletion_msg','account_state','facebook_id']
 
+    class Meta:
+        verbose_name = "Usuario"
+        verbose_name_plural = "Usuarios"
+
+    def __unicode__(self):
+        return self.nickname
+        
 class Site(models.Model):
     title = models.TextField()
     domain = models.TextField()
+
+    class Meta:
+        verbose_name = "Sitio"
+        verbose_name_plural = "Sitios"
+
+    def __unicode__(self):
+        return self.domain
 
 class Category(models.Model):
     title = models.TextField()
     name = models.TextField()
     site = models.ForeignKey('Site')
-    
+
+    class Meta:
+        verbose_name = "Categoría"
+        verbose_name_plural = "Categorías"
+
+    def __unicode__(self):
+        return self.title
+        
 class Story(models.Model):
     author = models.ForeignKey('User')
     title = models.TextField()
@@ -61,6 +82,14 @@ class Story(models.Model):
         '''Generate path to the story.'''
         return '/%s/%s/' % (self.category.name, self.url)
 
+    class Meta:
+        verbose_name = "Historia"
+        verbose_name_plural = "Historias"
+
+    def __unicode__(self):
+        return self.title
+
+
 class Msg(models.Model):
     title = models.TextField()
     image = models.ImageField(upload_to="msgs/")
@@ -76,6 +105,14 @@ class Msg(models.Model):
     status = models.IntegerField()
     msg_type = models.TextField()
     client_ip = models.TextField()
+
+    class Meta:
+        verbose_name = "Mensaje"
+        verbose_name_plural = "Mensajes"
+
+    def __unicode__(self):
+        return self.title
+
 
 class Reply(models.Model):
     author = models.ForeignKey('User')
@@ -101,12 +138,34 @@ class Reply(models.Model):
         context['parent_reply'] = self
 
         return render_to_string('sitio/sub_replies.html', context)
+        
+
+    class Meta:
+        verbose_name = "Respuestas"
+        verbose_name_plural = "Respuestas"
+
+    def __unicode__(self):
+        return self.title       
 
 class Relationship(models.Model):
     user = models.ForeignKey('User', related_name='+')
     friend = models.ForeignKey('User', related_name='+')
     date = models.DateTimeField(auto_now_add=True, blank=True)
 
+    class Meta:
+        verbose_name = "Relación"
+        verbose_name_plural = "Relaciones"
+
+    def user_nickname(self):
+        return self.user.nickname
+
+    def friend_nickname(self):
+        return self.friend.nickname
+
+    def __unicode__(self):
+        return self.user_nickname + ' ' + self.friend_nickname
+
+    
 class Vote(models.Model):
     date = models.DateTimeField(auto_now_add=True, blank=True)
     author = models.ForeignKey('User')
@@ -114,3 +173,14 @@ class Vote(models.Model):
     msg = models.ForeignKey('Msg',null=True)
     reply = models.ForeignKey('Reply',null=True)
     value = models.IntegerField()
+    
+    def author_nickname(self):
+        return self.author.nickname
+
+    def story_title(self):
+        return self.story.title
+        
+    class Meta:
+        verbose_name = "Voto"
+        verbose_name_plural = "Votos"
+

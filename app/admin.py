@@ -4,43 +4,35 @@ from django.contrib import admin
 
 class UserAdmin(admin.ModelAdmin):
     model = User
-    verbose_name = "Usuario"
-    verbose_name_plural = "Usuarios"
+    list_display = ('nickname','email')
 
 class SiteAdmin(admin.ModelAdmin):
     model = Site
-    verbose_name = "Sitio"
-    verbose_name_plural = "Sitios"
+    list_display = ('title','domain')
 
 class CategoryAdmin(admin.ModelAdmin):
     model = Category
-    verbose_name = "Categoría"
-    verbose_name_plural = "Categorías"
+    list_display = ('title','name')
 
 class StoryAdmin(admin.ModelAdmin):
     model = Story
-    verbose_name = "Historia"
-    verbose_name_plural = "Historias"
+    list_display = ('title','karma')
 
 class MsgAdmin(admin.ModelAdmin):
     model = Msg
-    verbose_name = "Mensaje"
-    verbose_name_plural = "Mensajes"
+    list_display = ('title','msg_type')
 
 class ReplyAdmin(admin.ModelAdmin):
     model = Reply
-    verbose_name = "Respuestas"
-    verbose_name_plural = "Respuestas"
+    list_display = ('title',)
     
 class RelationshipAdmin(admin.ModelAdmin):
     model = Relationship
-    verbose_name = "Relación"
-    verbose_name_plural = "Relaciones"
+    list_display = ('user_nickname','friend_nickname')
 
 class VoteAdmin(admin.ModelAdmin):
     model = Vote
-    verbose_name = "Voto"
-    verbose_name_plural = "Votos"
+    list_display = ('value','story_title','author_nickname')
 
 admin.site.register(User, UserAdmin)
 admin.site.register(Site, SiteAdmin)
