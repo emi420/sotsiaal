@@ -11,7 +11,7 @@
                 <p class="aviso-info">Tu perfil fue actualizado.</p>
             {% endifequal %}
             {% ifequal error '1' %}
-                <p class="aviso-info">El tama&ntilde;o de la imagen debe ser menor a 1mb.</p>
+                <p class="aviso-info">Oops! algo no ha ido bien al guardar a imagen.</p>
             {% endifequal %}
             {% ifequal error '2' %}
                 <p class="aviso-info">Las contrase&ntilde;as no coinciden, vuelva a intentarlo por favor</p>
@@ -20,7 +20,6 @@
             <form class="default-form edit-profile" action="/save_profile/" enctype="multipart/form-data" method="post">
                 <label>Avatar</label><br />
                 <label class="img-container"><img id="img-current-avatar" class="avatar" src="/user_img/{{ user.id }}/"></img></label>
-                <span class="default">El tama&ntilde;o de la imagen debe ser menor a 1mb</span> 
                 <p class="alt"><span id="avatar" class="input-file"><input name="img" type="file" /></span></p>
                 {% if user.avatar %}
                     <p id="delete-current-avatar" class="delete-current"><a href="#deletecurrentavatar" onclick="javascript: doDeleteCurrentAvatar('{{ user.id }}')">Borrar actual</a></p>
@@ -28,7 +27,6 @@
                 <hr class="clear" /><hr />
                 <label>Imagen de fondo</label><br />
                 <label class="img-container"><img height="50" width="50" id="img-current-bg" class="avatar" width="49" src="/user_img/{{ user.id }}/background/"></img></label>
-                <span class="default">El tama&ntilde;o de la imagen debe ser menor a 1mb</span> 
                 <p class="alt"><span class="input-file"><input name="imgbg" type="file" /></span></p>
                 {% if user.background %}
                     <p id="delete-current-bg" class="delete-current"><a onclick="javascript: doDeleteCurrentBg('{{ user.id }}')" href="#deletecurrentbg">Borrar actual</a></p>
@@ -36,8 +34,10 @@
                 <hr class="clear" /><hr />
                 <label>Banner</label><br />
                 <label class="img-container"><img height="50" width="50" id="img-current-banner" class="avatar" width="49" src="/user_img/{{ user.id }}/banner/"></img></label>
-                <span class="default">El tama&ntilde;o de la imagen debe ser menor a 1mb</span> 
                 <p class="alt"><span class="input-file"><input name="imgbanner" type="file" /></span></p>
+                {% if user.banner %}
+                    <p id="delete-current-banner" class="delete-current"><a onclick="javascript: doDeleteCurrentBanner('{{ user.id }}')" href="#deletecurrentbanner">Borrar actual</a></p>
+                {% endif %}
                 <hr class="clear" /><hr />
                 <span class="button"><input type="submit" value="Guardar mi perfil" /></span>
                 <hr class="clear" /><hr />
@@ -57,6 +57,7 @@
                 <label>Ubicaci&oacute;n</label>
                 <input name="location" class="text-input" value="{{ user.location }}"/>
                 <hr class="clear" />
+                <!--
                 <label>Recibir alertas en mi e-mail si:</label>
 				<br />
                 <table>
@@ -80,7 +81,7 @@
                         <td><label class="secondaryLabel">Activar modo an&oacute;nimo (tus posts e historias no incluir&aacute;n tu nombre de usuario)</label></td>
                     </tr>
                 </table>
-                <hr />
+                <hr />-->
                 <span class="button"><input type="submit" value="Guardar mi perfil" /></span>
                 {% csrf_token %}
             </form>
@@ -97,7 +98,9 @@
                 <input type="password" name="rpassword" class="text-input" value=""/>
                 <hr class="clear" />
                 <span class="button"><input type="submit" value="Guardar contrase&ntilde;a" /></span>
+                {% csrf_token %}
             </form>
+            <!--
             <br />
             <h2><a onclick="document.getElementById('delete-account').style.display='block'" class="expand" href="#delete-account">Borrar mi cuenta</a></h2>
             <form {% ifnotequal error '2' %} style="display:none" {% endifnotequal %}class="default-form edit-profile" id="delete-account" action="/send_deletion_mail/{{ user.id }}/" enctype="multipart/form-data" method="post">
@@ -110,5 +113,6 @@
                 <hr class="clear" />
                 <br />
                 <span class="button"><input type="submit" value="Borrar mi cuenta" /></span>
-            </form>
+                {% csrf_token %}
+            </form>-->
 {% endblock %}

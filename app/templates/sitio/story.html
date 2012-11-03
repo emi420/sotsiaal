@@ -36,9 +36,9 @@
                     <ul id="share-menu" class="content-list-item-menu">
                         <li class="link-share"><a id="menu-compartir" href="#share">Compartir</a></li>
                         <ul id="menu-compartir_c" class="menu-boton" style="display:none">
-                            <li><a id="lnk-email" class="lnk-email" href="mailto:?subject=%20%3A%20{{ story.title }}&amp;body=Hola, quiero%20compartir%20esta%20historia%20contigo%3A%20http://social.ndway.com{{ story.generate_path }}">Email</a></li>
-                            <li><a id="lnk-twitter" class="lnk-twitter" href="http://twitter.com/home?status={{ story.title }}+http://social.ndway.com{{ story.generate_path }}&source=SNDW">Twitter</a></li>
-                            <li class="ultimo"><a id="lnk-facebook" class="lnk-facebook" href="http://www.facebook.com/sharer.php?u=http://social.ndway.com{{ story.generate_path }}&t={{ story.title }}">Facebook</a></li>
+                            <li><a id="lnk-email" class="lnk-email" href="mailto:?subject=%20%3A%20{{ story.title }}&amp;body=Hola, quiero%20compartir%20esta%20historia%20contigo%3A%20http://sotsiaal.voolks.com{{ story.generate_path }}">Email</a></li>
+                            <li><a id="lnk-twitter" class="lnk-twitter" href="http://twitter.com/home?status={{ story.title }}+http://sotsiaal.voolks.com{{ story.generate_path }}&source=SNDW">Twitter</a></li>
+                            <li class="ultimo"><a id="lnk-facebook" class="lnk-facebook" href="http://www.facebook.com/sharer.php?u=http://sotsiaal.voolks.com{{ story.generate_path }}&t={{ story.title }}">Facebook</a></li>
                         </ul>
                         {% if user %}
 		                        {% if not usrburied %}
@@ -54,7 +54,7 @@
                                     {% endif %}
                                 {% endif %}
                                 
-                                {% ifequal user.key  story.author.key %}
+                                {% ifequal user.id  story.author.id %}
                                 <li><a href="/delete_story/{{ story.id }}/"><span>Borrar {% if internal_mode %}tema{% else %}historia{% endif %}</span></a></li>
                                 {% endifequal %}
                         {% else %}
@@ -91,7 +91,7 @@
                 {% endif %}
             </div>
             <div class="user-info">
-                <a class="link-user" href="/{{ story.author.nickname }}"><img class="avatar" src="/user_img/{{ story.author.key }}/" alt="{{ story.author.user.nickname }}" /></a>
+                <a class="link-user" href="/{{ story.author.nickname }}"><img class="avatar" src="/user_img/{{ story.author.id }}/" alt="{{ story.author.user.nickname }}" /></a>
                 <p>
                     por <br />
                     <a class="link-user" href="/{{ story.author.nickname }}">{{ story.author.nickname }}</a> <br />
@@ -108,11 +108,11 @@
                     {% endifequal %} 
                     <br />
                     {% if user %}
-                    {% ifnotequal user.key story.author.key %}
+                    {% ifnotequal user.id story.author.id %}
                     {% ifequal following 0 %}
-                        <a class="link-follow" id="link-follow" href="#addfriend" onclick="javascript: doAddFriend('{{ story.author.key }}','{{ user.key }}')">Seguir</a>
+                        <a class="link-follow" id="link-follow" href="#addfriend" onclick="javascript: doAddFriend('{{ story.author.id }}','{{ user.id }}')">Seguir</a>
                     {% else %}
-                        <a class="link-follow" id="link-follow" href="#removefriend" onclick="javascript: doRemoveFriend('{{ story.author.key }}','{{ user.key }}')">Dejar de seguir</a>
+                        <a class="link-follow" id="link-follow" href="#removefriend" onclick="javascript: doRemoveFriend('{{ story.author.id }}','{{ user.id }}')">Dejar de seguir</a>
                     {% endifequal %}
                     {% endifnotequal %}
                     {% endif %}

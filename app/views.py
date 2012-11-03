@@ -8,30 +8,21 @@ import cgi
 
 from os import environ
 
-#from google.appengine.ext import db
-#from google.appengine.api import mail, images
-#import google.appengine.api.images
-#from google.appengine.api import memcache
-#from google.appengine.ext import blobstore
-#from google.appengine.api import urlfetch
-#from google.appengine.api import users
-
 from django import forms
 from django.shortcuts import render_to_response
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound, HttpResponseForbidden
 from django.core.paginator import Paginator
 from django.utils import simplejson
 from django.utils.http import urlquote
-#from django.conf import settings
 from django.template.loader import render_to_string
 from django.template import RequestContext
 
 from app.models import User, Category, Story, Msg, Reply, Relationship, Vote, Site
 from app.utils import *
-#from app.facebook import Facebook
 from app import captcha
-#from app import blobstore_helper
-
+from django.core.files.base import ContentFile
+from django.db.models import Q
+from django.core.mail import send_mail
 
 # sidebar styles
 SIDEBAR_NONE = 0
@@ -173,7 +164,7 @@ def messages_paginated(story, page, context):
                 r.context = context
     return msgs
 
-@internal_login_required
+
 def index(request, category_name = ''):
     '''Home page.'''
     context = {}
@@ -233,7 +224,7 @@ def index(request, category_name = ''):
     context['popular'] = request.GET.get('popular', '')
     return render_to_response('sitio/index.html', context, context_instance=RequestContext(request))
 
-@internal_login_required
+
 def story(request, category_key, story_url):
     '''Story page.'''
     # FIXME check, is migrated code
@@ -265,15 +256,19 @@ def story(request, category_key, story_url):
         following_query = Relationship.objects.filter(user=current_user,friend=story.author)
         following = following_query.count()
 
-        usr_voted = Vote.objects.filter(author=get_current_user(request),story=story,value__gte=0)[0]
-        usr_buried = Vote.objects.filter(author=get_current_user(request),story=story,value__gte=0)[0]
-
+        try:
+            usr_voted = Vote.objects.get(author=get_current_user(request),story=story,value__gte=0)[0]
+        except:
+            usr_voted = None
+            
+        try:
+            usr_buried = Vote.objects.get(author=get_current_user(request),story=story,value__gte=0)[0]
+        except:
+            usr_buried = None
+            
         storytitle = story.title + ' - '
 
-        #TODO
-        #related_stories = stories = Story.filter('status =', 0).search(story.title)[:5]
-        #related_stories = [s for s in related_stories if s.key() != story.key()]
-        related_stories = [];
+        related_stories = Story.objects.filter(Q(title__icontains=story.title) | Q(bio__icontains=story.title)).exclude(id=story.id).order_by('karma')[:5]
         
         allow_comments = True
         try:
@@ -299,7 +294,6 @@ def story(request, category_key, story_url):
 
         context['captchahtml'] = chtml
         context['enable_bigfiles'] = settings.ENABLE_BIGFILES
-        #context['uploadurl'] = blobstore.create_upload_url('/upload_blob/')        
         context['story'] = story
         context['error'] = request.GET.get('error', '')
         context['sidebar_stories'] = related_stories
@@ -329,7 +323,7 @@ def story(request, category_key, story_url):
         return HttpResponseRedirect('/invalid_story/')
 
 			
-@internal_login_required
+
 def print_story(request, story_key):
     '''Print story.'''
     context = {}
@@ -338,7 +332,7 @@ def print_story(request, story_key):
     return render_to_response('sitio/story_print.html', context,
                               context_instance=RequestContext(request))
 
-@internal_login_required
+
 def legal(request):
     '''Legal info page.'''
     context = {}
@@ -358,7 +352,7 @@ def contact(request):
     return render_to_response('sitio/contact.html', context,
                               context_instance=RequestContext(request))
 
-@internal_login_required
+
 def search(request):
     '''Search page.'''
     # FIXME check, is migrated code
@@ -366,18 +360,12 @@ def search(request):
     add_common_context(request, context, request.GET.get('q', ''),
                        sidebar_style = SIDEBAR_BASIC)
 
-    searchquery = request.GET.get('q', '').upper()
+    searchquery = request.GET.get('q', '')
     
-    #TODO
-    #stories1 = Story.filter('status =', 0).search(searchquery)
-    stories1 = []
-    #users = User.all().search(searchquery)
-    users = []
-    #stories2 = Story.filter('status =', 0).filter('author IN',[u.key() for u in users])
-    stories2 = []
-    #stories = Story.filter('__key__ IN',[u.key() for u in stories1] + [u.key() for u in stories2])
-    stories = []
+    stories = Story.objects.filter(Q(title__icontains=searchquery) | Q(bio__icontains=searchquery)).order_by('karma')
+
     
+        
     add_stories_context(request, context, stories)
 
     context['searchquery'] = request.GET.get('q', '')
@@ -385,7 +373,8 @@ def search(request):
     return render_to_response('sitio/search.html', context,
                               context_instance=RequestContext(request))
 
-@internal_login_required
+
+@login_required
 def new_story(request):
     '''New Story page.'''
     get_title = request.GET.get('title', '')
@@ -453,7 +442,7 @@ def signup(request):
 
 @login_required
 def edit_profile(request):
-    '''Edito profile page.'''
+    '''Edit profile page.'''
     context = {}
     add_common_context(request, context, sidebar_style = SIDEBAR_NOAD)
 
@@ -462,7 +451,7 @@ def edit_profile(request):
     return render_to_response('sitio/edit_profile.html', context,
                               context_instance=RequestContext(request))
 
-@internal_login_required
+
 def view_profile(request, user_nickname):
     '''User profile page.'''
     context = {}
@@ -496,16 +485,15 @@ def view_profile(request, user_nickname):
 
     add_stories_context(request, context, stories)
 
-    # followers
     try:
-        followers = Relationship.objects.filter(friend=view_user) 
+        followers = Relationship.objects.filter(friend=view_user)
     except:
         followers = []
         
     try:
-        following = Relationship.objects.filter(friend=view_user,user=user)
+        following = Relationship.objects.get(friend=view_user,user=user)
     except:
-        following = []
+        following = 0
         
     context['user'] = user
     context['viewuser'] = view_user
@@ -532,115 +520,6 @@ def pass_recovery(request):
     return render_to_response('sitio/pass_recovery.html', context,
                               context_instance=RequestContext(request))
 
-@login_required
-@admin_required
-def admin(request):
-    '''Admin page.'''
-    context = {}
-    add_common_context(request, context, sidebar_style = SIDEBAR_NOAD)
-
-    return render_to_response('sitio/admin.html', context,
-                              context_instance=RequestContext(request))
-
-@login_required
-@admin_required
-def admin_categories(request):
-    '''Categories admin page.'''
-    context = {}
-    add_common_context(request, context, sidebar_style = SIDEBAR_NOAD)
-
-    categories = Category.all()
-    context['categories'] = categories
-
-    return render_to_response('sitio/admin_categories.html', context,
-                              context_instance=RequestContext(request))
-
-@login_required
-@admin_required
-def admin_sites(request):
-    '''Categories admin page.'''
-    context = {}
-    add_common_context(request, context, sidebar_style = SIDEBAR_NOAD)
-
-    sites = Site.all()
-    context['sites'] = sites
-
-    return render_to_response('sitio/admin_sites.html', context,
-                              context_instance=RequestContext(request))
-
-
-@login_required
-@admin_required
-def admin_users(request):
-    '''Users admin page.'''
-    context = {}
-    add_common_context(request, context, sidebar_style = SIDEBAR_NOAD)
-
-    searchquery = request.GET.get('q', '').upper()
-    if searchquery:
-        users = User.all().search(searchquery)
-    else:
-        users = User.all()
-
-    if 'page' in request.GET:
-        page = request.GET.get('page', '')
-    else:
-        page = 1
-
-    paginator = Paginator(users, 20)
-    try:
-        users_paginated = paginator.page(int(page)).object_list
-        pages = paginator.page_range
-        page_count = paginator.num_pages + 1
-    except:
-        users_paginated = []
-        pages = []
-        page_count = 2
-
-    context['users'] = users_paginated
-    context['userssearchquery'] = request.GET.get('q', '')
-    context['pages'] = pages
-    context['pageprev'] = int(page)-1
-    context['pagenext'] = int(page)+1
-    context['pagecount'] = page_count
-
-    return render_to_response('sitio/admin_users.html', context,
-                              context_instance=RequestContext(request))
-
-@login_required
-@admin_required
-def block_user(request, userkey):
-    '''Do account blocking.'''
-    usr = User.objects.get(id=userkey)
-    if usr:
-        usr.account_state = 'blocked'
-        usr.save()
-
-    urlback = request.GET.get('urlback', '/admin/users/')
-    return HttpResponseRedirect(urlback)
-
-@login_required
-@admin_required
-def enable_user(request, userkey):
-    '''Do account re enabling.'''
-    usr = User.objects.get(id=userkey)
-    if usr:
-        usr.account_state = ''
-        usr.save()
-
-    urlback = request.GET.get('urlback', '/admin/users/')
-    return HttpResponseRedirect(urlback)
-
-@login_required
-@admin_required
-def block_story(request, storykey):
-    '''Do story blocking.'''
-    story = Story.objects.get(id=storykey)
-    if story:
-        story.status = 1
-        story.save()
-
-    return HttpResponseRedirect(story.generate_path())
 
 @login_required
 def delete_story(request, storykey):
@@ -655,75 +534,6 @@ def delete_story(request, storykey):
 
     context['urlback'] = '/'
     return render_to_response('sitio/deleted_story.html', context, context_instance=RequestContext(request))
-@login_required
-@admin_required
-def enable_story(request, storykey):
-    '''Do story re enabling.'''
-    story = Story.objects.get(id=storykey)
-    if story:
-        story.status = 0
-        story.save()
-
-    return HttpResponseRedirect(story.generate_path())
-
-@login_required
-@admin_required
-def enable_message(request, msgkey):
-    '''Do message re enabling.'''
-    msg = Msg.objects.get(id=msgkey)
-    if msg:
-        msg.status = 0
-        msg.save()
-
-    return HttpResponseRedirect(msg.storyparent.generate_path())
-
-@login_required
-@admin_required
-def enable_reply(request, replykey):
-    '''Do reply re enabling.'''
-    reply = Reply.objects.get(id=replykey)
-    if reply:
-        reply.status = 0
-        reply.save()
-
-    return HttpResponseRedirect(reply.replyto.storyparent.generate_path())
-
-@login_required
-@admin_required
-def hard_delete_message(request, msgkey):
-    '''Do message hard deletting.'''
-    urlback = '/'
-    msg = Msg.objects.get(id=msgkey)
-    if msg:
-        urlback = msg.storyparent.generate_path()
-        msg.delete()
-
-    return HttpResponseRedirect(urlback)
-
-@login_required
-@admin_required
-def hard_delete_reply(request, replykey):
-    '''Do reply hard deletting.'''
-    urlback = '/'
-    reply = Reply.objects.get(id=replykey)
-    if reply:
-        urlback = reply.replyto.storyparent.generate_path()
-        reply.delete()
-
-    return HttpResponseRedirect(urlback)
-
-@login_required
-@admin_required
-def banned_stories(request):
-    '''Banned stories admin page.'''
-    context = {}
-    add_common_context(request, context, sidebar_style = SIDEBAR_NOAD)
-
-    stories = Story.filter(status=1).order_by('-date')
-    context['stories'] = stories
-
-    return render_to_response('sitio/banned_stories.html', context,
-                              context_instance=RequestContext(request))
 
 def add_user(request):
     '''Add user action.'''
@@ -784,7 +594,6 @@ def do_login(request):
     # FIXME check, is migrated code for POST method
 
     urlback = request.POST.get('urlback', '/')
-
     if request.POST.get('email', ''):
         if request.POST.get('password', ''):
             usr = None
@@ -802,14 +611,15 @@ def do_login(request):
                 elif usr.account_state == 'blocked':
                     # blocked account
                     return HttpResponseRedirect('/account_message/?message=11')
-                elif usr.facebook_id:
-                    # trying to login with a facebook account
-                    return HttpResponseRedirect('/login/?error=1&urlback=%s' % urlback)
                 else:
                     # user session initialization
                     request.session['logged_user'] = str(usr.id)
+                    
+                    if urlback == '':
+                        return HttpResponseRedirect("/")# login ok, go to home
+                    else:
+                        return HttpResponseRedirect(urlback)# login ok, go to urlback
 
-                    return HttpResponseRedirect(urlback)# login ok, go to urlback
             else:
                 return HttpResponseRedirect('/login/?error=1&urlback=%s' % urlback) # invalid user/password
         else:
@@ -817,80 +627,20 @@ def do_login(request):
     else:
         return HttpResponseRedirect('/login/?error=3&urlback=%s' % urlback) # missing user name
 
-def login_facebook_connect(request):
-    '''Do facebook connect login.'''
-    try:
-        expires = request.GET.get('expires', '')
-        ss = request.GET.get('ss', '')
-        session_key = request.GET.get('session_key', '')
-        facebook_id = request.GET.get('user', '')
-        sig = request.GET.get('sig', '')
-        urlback = request.GET.get('urlback', '/')
 
-        pre_hash_string = "expires=%ssession_key=%sss=%suser=%s%s" % (
-            expires,
-            session_key,
-            ss,
-            facebook_id,
-            settings.FACEBOOK_APPLICATION_SECRET,
-        )
-        post_hash_string = hashlib.new('md5')
-        post_hash_string.update(pre_hash_string)
-        if post_hash_string.hexdigest() == sig:
-            usr = User.objects.filter(facebook_id=facebook_id)[0]
-            if not usr:
-                facebook = Facebook(settings.FACEBOOK_API_KEY, settings.FACEBOOK_APPLICATION_SECRET)
-                info = facebook.users.getStandardInfo([facebook_id],
-                                                      ['name',
-                                                       'proxied_email',
-                                                       'first_name',
-                                                       'last_name',
-                                                       'profile_url',
-                                                       'current_location'])[0]
-                nickname = info['name']
-
-                usr2 = User.filter(nickname=nickname)[0]
-                if usr2:
-                    # facebook user with same name of a stq user
-                    return HttpResponseRedirect('/login/?error=5&urlback=%s' % urlback)
-                else:
-                    # new facebook user
-                    usr = User()
-                    usr.facebook_id = facebook_id
-                    usr.nickname = nickname
-                    usr.email = info['proxied_email'] or ''; # is there another way?
-                    usr.name = (info['first_name'] or '') + ' ' + (info['last_name'] or '')
-                    usr.url = info['profile_url'] or ''
-                    usr.location = info['current_location'] or ''
-                    usr.bio = ''
-                    usr.pop = 0
-                    usr.save()
-
-            if usr.account_state == 'blocked':
-                # blocked account
-                return HttpResponseRedirect('/account_message/?message=11')
-            else:
-                request.session['logged_user'] = str(usr.id)
-                return HttpResponseRedirect(urlback)# login ok, go to urlback
-        else:
-            return HttpResponseRedirect('/login/?error=6&urlback=%s' % urlback)
-
-    except Exception, e:
-        return HttpResponseRedirect('/login/?error=6&urlback=%s' % urlquote(urlback))
-
-@login_required
 def logout(request):
     '''Do logout.'''
     # clean user session
-
+    
     if 'logged_user' in request.session:
         del request.session['logged_user']
     if 'site' in request.session:
         del request.session['site']
     if 'urlback' in request.GET:
-        return HttpResponseRedirect( users.create_logout_url(urlquote(request.GET.get('urlback', ''))) ) # logout ok, go to urlback
-    else:
-        return HttpResponseRedirect( users.create_logout_url(urlquote(request.GET.get('/', ''))) ) # logout ok, go to urlback
+        return HttpResponseRedirect(urlquote(request.GET.get('urlback', '')))
+        #return HttpResponseRedirect( users.create_logout_url(urlquote(request.GET.get('urlback', ''))) ) # logout ok, go to urlback
+    return HttpResponseRedirect("/")
+        #return HttpResponseRedirect( users.create_logout_url(urlquote(request.GET.get('/', ''))) ) # logout ok, go to urlback
 
 @logged_or_fail
 def save_profile(request):
@@ -900,28 +650,23 @@ def save_profile(request):
     user = get_current_user(request)
     if 'img' in request.FILES:
         try:
-            image = request.FILES['img'].read()
-            #TODO
-            user.avatar = '' #db.Blob(images.resize(image, 49, 49))
-            user.avatar_big = '' #db.Blob(image)
-            user.avatar_mini = '' #db.Blob(images.resize(image, 16, 16))
-            user.avatar_med = '' #db.Blob(images.resize(image, 128, 128))
+            file_content = ContentFile(request.FILES['img'].read())
+            user.avatar.save(request.FILES['img'].name, file_content)
         except:
             return HttpResponseRedirect('/edit_profile/?error=1') # image error, possibly a too big file
     if 'imgbg' in request.FILES:
         try:
-            #TODO
-            user.background = '' #db.Blob(request.FILES['imgbg'].read())
+            file_content = ContentFile(request.FILES['imgbg'].read())
+            user.background.save(request.FILES['imgbg'].name, file_content)
         except:
             return HttpResponseRedirect('/edit_profile/?error=1') # image error, possibly a too big file
     if 'imgbanner' in request.FILES:
         try:
-            #TODO
-            user.banner = '' #db.Blob(request.FILES['imgbanner'].read())
+            file_content = ContentFile(request.FILES['imgbanner'].read())
+            user.banner.save(request.FILES['imgbanner'].name, file_content)
         except:
             return HttpResponseRedirect('/edit_profile/?error=1') # image error, possibly a too big file
-    #if request.POST.get('nickname', ''):
-    #    user.nickname = request.POST.get('nickname', '')
+    
     user.name = request.POST.get('name', '')
     user.bio = request.POST.get('bio', '')
     user.url = request.POST.get('url', '')
@@ -932,11 +677,12 @@ def save_profile(request):
     user.replies_alerts = 'replies_alerts' in request.POST
     user.invisible_mode = 'invisible_mode' in request.POST
 
-    try:
-        user.save()
-        return HttpResponseRedirect('/edit_profile/?error=0') # saved profile
-    except:
-        return HttpResponseRedirect('/edit_profile/?error=1') # image error, possibly a too big file
+    #import pdb; pdb.set_trace()
+    #try:
+    user.save()
+    return HttpResponseRedirect('/edit_profile/?error=0') # saved profile
+    #except:
+    #    return HttpResponseRedirect('/edit_profile/?error=1') # image error, possibly a too big file
 
 def save_pass(request):
     '''Save password.'''
@@ -967,7 +713,6 @@ def save_pass(request):
         else:
             return HttpResponseRedirect('/') # trying to change password without rkey or logged user
 
-@internal_logged_or_fail
 def add_story(request):
     '''Add story.'''
     # FIXME check, is migrated code for POST method	
@@ -1027,7 +772,6 @@ def add_story(request):
             urlprev_query = Story.objects.filter(url=story.url)
             urlprev_count = urlprev_query.count()
             if urlprev_count:
-                story.save()
                 story.url = story.url + '-' + str(story.id)
             story.title = request.POST.get('title', '')
 
@@ -1040,23 +784,17 @@ def add_story(request):
             story.pop = 1
             story.karma = 10
             story.hkarma = 0
-            url_img_value = request.POST.get('url_img_value', '')
-            if( url_img_value ):
-                image = urllib.urlopen(url_img_value).read()
-                #FIXME CHECK
-                story.avatar = image #db.Blob(images.resize(image, 78, 78))
-                story.image = image #db.Blob(image)
-            else:
-                if('img' in request.FILES):
-                    image = request.FILES['img'].read()
-                    #TODO
-                    story.avatar = image #db.Blob(images.resize(image, 78, 78))
-                    story.image = image #db.Blob(image)
             story.status = 0
             if usr.email == settings.ANONYMOUS_USER_MAIL:
             	story.client_ip = '127.0.0.1'
             	#story.date = settings.ANONYMOUS_DATETIME
             story.save()
+
+            if('img' in request.FILES):
+                file_content = ContentFile(request.FILES['img'].read())
+                story.avatar.save(request.FILES['img'].name, file_content)
+                story.image.save(request.FILES['img'].name, file_content)
+
             # first vote
             vote = Vote()
             vote.story = story
@@ -1078,7 +816,7 @@ def add_story(request):
         rurl = '/new_story/?error=2' 
         return HttpResponseRedirect(rurl)
 
-@internal_logged_or_fail
+
 def add_message(request):
     '''Add message.'''
     # FIXME check, is migrated code for POST method
@@ -1091,32 +829,10 @@ def add_message(request):
         msg = Msg.objects.get(id=key_name)
 		
         usr = get_current_user(request)
-        use_anonymous = False
-        
-        if ( usr == None ):
-            usr = User.objects.get(email=settings.ANONYMOUS_USER_MAIL)
-            remoteip  = environ['REMOTE_ADDR']
-            use_anonymous = True
-        else:
-            try:
-                if usr.invisible_mode:
-                    use_anonymous = True
-            except:
-                pass
-            
-        if use_anonymous:
-            if settings.SITE_MODE != settings.SITE_MODE_PUBLIC:
-                usr = User.objects.get(email=settings.ANONYMOUS_USER_MAIL)
-            else:
-                title = None
-		
+        	
         if title and title != settings.DEFAULT_COMMENT_TEXT:
             reply = Reply()
-            if usr.email == settings.ANONYMOUS_USER_MAIL:
-            	reply.client_ip = '127.0.0.1'
-            	#reply.date = settings.ANONYMOUS_DATETIME
-            else:
-                reply.client_ip = request.META['REMOTE_ADDR']
+            reply.client_ip = request.META['REMOTE_ADDR']
             reply.replyto = msg
             reply.author = usr
             reply.title = request.POST.get('title', '')
@@ -1158,29 +874,10 @@ def add_message(request):
 
         usr = get_current_user(request)
 
-        use_anonymous = False
-        if ( usr == None ):
-            use_anonymous = True
-        else:
-            try:
-                if usr.invisible_mode:
-                    use_anonymous = True
-            except:
-                pass
-
-        if use_anonymous:
-            if settings.SITE_MODE != settings.SITE_MODE_PUBLIC:
-                usr = User.objects.get(email=settings.ANONYMOUS_USER_MAIL)
-            else:
-                title = None
-		
+	
         if title and title != settings.DEFAULT_COMMENT_TEXT:
             reply = Reply()
-            if usr.email == settings.ANONYMOUS_USER_MAIL:
-            	reply.client_ip = '127.0.0.1'
-            	#reply.date = settings.ANONYMOUS_DATETIME
-            else:
-                reply.client_ip = request.META['REMOTE_ADDR']
+            reply.client_ip = request.META['REMOTE_ADDR']
             reply.replytor = parent_reply
             reply.author = usr
             reply.title = request.POST.get('title', '')
@@ -1211,54 +908,44 @@ def add_message(request):
 
     # messages
     else:
-        challenge = request.POST.get('recaptcha_challenge_field')
-        response  = request.POST.get('recaptcha_response_field')
         #FIXME
         remoteip  = '' #environ['REMOTE_ADDR']
-        cResponse = captcha.submit(
-                         challenge,
-                         response,
-                         settings.RECAPTCHA_PRIVATEKEY,
-                         remoteip)
-                         
         
         usr = get_current_user(request)
-        use_anonymous = False
-        try:
-            if usr.invisible_mode:
-             use_anonymous = True
-        except:
-            pass
                     
         key_name = request.POST.get('storyparent', '')
-        #import pdb; pdb.set_trace()
         story = Story.objects.get(id=key_name)
 
-        if cResponse.is_valid or usr:
-            if ( usr == None or use_anonymous):
-                usr = User.objects.get(email=settings.ANONYMOUS_USER_MAIL)
-
+        if usr:
             if title:
                 msg = Msg()
-                if usr.email == settings.ANONYMOUS_USER_MAIL:
-            	    msg.client_ip = '127.0.0.1'
-            	    #msg.date = settings.ANONYMOUS_DATETIME 
-                else:
-                    msg.client_ip = request.META['REMOTE_ADDR']
+                msg.client_ip = request.META['REMOTE_ADDR']
                 msg.storyparent = story
                 msg.author = usr
                 msg.title = request.POST.get('title', '')
                 if msg.title == settings.DEFAULT_COMMENT_TEXT:
                     msg.title = ''
-    
-                msg.msg_type = request.POST.get('msg_type', 'text')
+                    
                 save = True
                 if msg.msg_type != 'video':
                     save = msg.title
                 if save:
+    
+                    msg.msg_type = request.POST.get('msg_type', 'text')
+                    if msg.msg_type == 'video':
+                        msg.video = request.POST.get('video', '').replace("http://www.youtube.com/watch?v=","")
+                    elif msg.msg_type == 'map':
+                        msg.map = request.POST.get('map', '')
+    
                     msg.pop = 0
                     msg.status = 0
                     msg.save()
+
+                    if msg.msg_type == 'image':
+                        if('image' in request.FILES):
+                            file_content = ContentFile(request.FILES['image'].read())
+                            msg.image.save(request.FILES['image'].name, file_content)
+
     
                     story.author.pop += 1
                     story.author.save()
@@ -1282,42 +969,6 @@ def add_message(request):
             return HttpResponseRedirect(story.generate_path() + '?error=1')
             #return HttpResponse('0')
 
-
-@internal_logged_or_fail
-def add_message_attach(request):
-	msg_key = request.POST.get('msg_id', '')
-	msg = Msg.objects.get(id=msg_key)
-	key_name = request.POST.get('storyparent', '')
-	story = Story.objects.get(id=key_name)
-	
-	if msg.msg_type == 'video':
-	    msg.video = request.POST.get('video', '')
-	elif msg.msg_type == 'map':
-	    msg.map = request.POST.get('map', '')
-	    msg.map_zoom = int(request.POST.get('map_zoom', '1'))
-	elif msg.msg_type == 'doc' or msg.msg_type == 'image':
-            filekey = None
-            try:
-                if msg.msg_type == 'doc':
-                    uploads = blobstore_helper.get_uploads(request, 'document')
-                    filename = request.FILES['document'].name
-                else:
-                    uploads = blobstore_helper.get_uploads(request, 'image')
-                    filename = request.FILES['image'].name
-                uploadfile = uploads
-                for upload in uploads:
-                    filekey = str(upload.id) 
-                    if filekey:
-                        msg.document = filekey
-                        if filename:
-                            msg.filename = filename
-
-            except:
-                pass
-	msg.save()
-	return HttpResponseRedirect(story.generate_path())
-
-
 def popular_users(request):
     '''Popular users ranking.'''
     context = {}
@@ -1330,24 +981,22 @@ def popular_users(request):
                               context_instance=RequestContext(request))
 
 def send_contact_msg(request):
+    # FIXME check, is migrated code
     '''Send contact message.'''
-    # FIXME check, is migrated code for POST method
     email = request.POST.get('email', '')
     msg =  request.POST.get('msg', '')
     if email and msg:
-        if not mail.is_email_valid(email):
-            return HttpResponseRedirect('/contact/?error=2')
-        else:
-            sender_adress = settings.SITE_MAIL
-            stq_address = 'robycibriancampoy@gmail.com'
-            subject = 'Contacto'
-            body = email + ' escribe:  ' + msg
-            mail.send_mail(sender_adress, stq_address, subject, body)
-            return HttpResponseRedirect('/contact/?error=0')
+        sender_adress = settings.SITE_MAIL
+        stq_address = 'sotsiaal@voolks.com'
+        subject = 'Contacto'
+        body = email + ' escribe:  ' + msg
+        send_mail(subject, body, sender_adress,[stq_address], fail_silently=True)
+        return HttpResponseRedirect('/contact/?error=0')
     else:
         return HttpResponseRedirect('/contact/?error=1')
 
 def send_recovery_pass(request):
+    # FIXME check, is migrated code
     '''Send recovery pass message.'''
     # FIXME check, is migrated code for POST method
     email = request.POST.get('email', '')
@@ -1373,30 +1022,9 @@ def send_recovery_pass(request):
     else:
         return HttpResponseRedirect('/pass_recovery/?error=2')
 
-def admin_send_recovery_pass(request, userkey):
-    '''Send recovery pass message.'''
-    # FIXME check, is migrated code for POST method
-    usr = User.objects.get(id=userkey)
-    if usr:
-        if not mail.is_email_valid(usr.email):
-            return HttpResponseRedirect('/admin/users/')
-        else:
-            usr.recovery_key = hashlib.md5(str(random.random())).hexdigest()
-            usr.save()
-            sender_adress = settings.SITE_MAIL
-            receiver_address = usr.email
-            subject = 'Tu cuenta de usuario'
-            confirmation_url = settings.SITE_BASE_URL + '/pass_recovery?rkey=' + usr.recovery_key
-            body = render_to_string('sitio/mail_recover_pass.html',
-                                    {'link': confirmation_url})
-            mail.send_mail(sender_adress, receiver_address, subject, body)
-            return HttpResponseRedirect('/admin/users/')
-    else:
-        return HttpResponseRedirect('/admin/users/')
-
-
 
 def send_activation_mail(request, user_key):
+    # FIXME check, is migrated code
     '''Send account activation message.'''
     usr = User.objects.get(id=user_key)
     if usr:
@@ -1413,6 +1041,7 @@ def send_activation_mail(request, user_key):
         return HttpResponseRedirect('/account_message/?message=4') # activation email not sended
 
 def send_deletion_mail(request, user_key):
+    # FIXME check, is migrated code
     '''Send account deletion message.'''
     usr = User.objects.get(id=user_key)
     if usr:
@@ -1426,7 +1055,9 @@ def send_deletion_mail(request, user_key):
         deletion_url = settings.SITE_BASE_URL + '/delete_account/%s/' % usr.deletion_key
         body = render_to_string('sitio/mail_delete_account.html',
                                 {'link': deletion_url})
-        mail.send_mail(sender_adress, receiver_address, subject, body)
+        
+        #TODO
+        #mail.send_mail(sender_adress, receiver_address, subject, body)
 
         return HttpResponseRedirect('/account_message/?message=6') # deletion email sended
     else:
@@ -1444,6 +1075,7 @@ def account_message(request):
                               context_instance=RequestContext(request))
 
 def activate_account(request, activation_key):
+    # FIXME check, is migrated code
     '''Do account activation.'''
     usr = User.objects.filter(activation_key=activation_key)[0]
     if usr:
@@ -1518,147 +1150,10 @@ def update_karma(request):
     return render_to_response('sitio/debug.html', context,
                               context_instance=RequestContext(request))
 
-@admin_required
-def add_category(request):
-    '''Add category.'''
-    if request.POST.get('title', ''):
-        category = Category()
-        category.title = request.POST.get('title', '')
-        category.name = request.POST.get('name', '')
-        category.site = request.session['site']
-        category.save()
-    return HttpResponseRedirect('/admin/categories/')
 
-@admin_required
-def delete_category(request, categorykey):
-    '''Delete category.'''
-    category = Category.objects.get(id=categorykey)
-    if category:
-        category.delete()
-    return HttpResponseRedirect('/admin/categories/')
-
-@admin_required
-def edit_category(request, categorykey):
-    '''Edit category.'''
-    category = Category.objects.get(id=categorykey)
-    if category:
-        if request.method == 'POST':
-            category.title = request.POST.get('title', '')
-            category.name = request.POST.get('name', '')
-            category.site = request.session['site']
-            category.save()
-        else:
-            context = {}
-            add_common_context(request, context, sidebar_style = SIDEBAR_NOAD)
-
-            context['category'] = category
-
-            return render_to_response('sitio/edit_category.html', context,
-                                      context_instance=RequestContext(request))
-
-    return HttpResponseRedirect('/admin/categories/')
-
-@admin_required
-def add_site(request):
-    '''Add site.'''
-    if request.POST.get('title', ''):
-        site = Site()
-        site.title = request.POST.get('title', '')
-        site.domain = request.POST.get('domain', '')
-        site.save()
-    return HttpResponseRedirect('/admin/sites/')
-
-@admin_required
-def delete_site(request, sitekey):
-    '''Delete site.'''
-    site = Site.objects.get(id=sitekey)
-    if site:
-        site.delete()
-    return HttpResponseRedirect('/admin/sites/')
-
-@admin_required
-def edit_site(request, sitekey):
-    '''Edit site.'''
-    site = Site.objects.get(id=sitekey)
-    if site:
-        if request.method == 'POST':
-            site.title = request.POST.get('title', '')
-            site.domain = request.POST.get('domain', '')
-            site.save()
-        else:
-            context = {}
-            add_common_context(request, context, sidebar_style = SIDEBAR_NOAD)
-
-            context['site'] = site
-
-            return render_to_response('sitio/edit_site.html', context,
-                                      context_instance=RequestContext(request))
-
-    return HttpResponseRedirect('/admin/sites/')
-
-
-@admin_required
-def reset_account(request, userkey):
-    '''Reset account.'''
-    user = User.objects.get(id=userkey)
-    if user:
-        user.avatar = None
-        user.avatar_big = None
-        user.avatar_mini = None
-        user.avatar_med = None
-        user.background = None
-        user.name = ''
-        user.bio = ''
-        user.url = ''
-        user.location = ''
-        user.comments_alerts = True
-        user.replies_alerts = True
-        user.save()
-
-    return HttpResponseRedirect('/admin/users/')
-
-@admin_required
-def admin_edit_profile(request, userkey):
-    '''Edit profile.'''
-    user = User.objects.get(id=userkey)
-    if user:
-        if request.method == 'POST':
-            if 'img' in request.FILES:
-                try:
-                    #FIXME: CHECK
-                    image = request.FILES['img'].read()
-                    user.avatar = image #db.Blob(images.resize(image, 49, 49))
-                except:
-                    return HttpResponseRedirect('/admin/users/') # image error, possibly a too big file
-            if 'imgbg' in request.FILES:
-                try:
-                    user.background = request.FILES['imgbg'].read()
-                except:
-                    return HttpResponseRedirect('/admin/users/') # image error, possibly a too big file
-            user.name = request.POST.get('name', '')
-            user.bio = request.POST.get('bio', '')
-            user.url = request.POST.get('url', '')
-            if user.url and not user.url.strip().startswith('http'):
-                user.url = 'http://' + user.url.strip()
-            user.location = request.POST.get('location', '')
-            user.comments_alerts = 'comments_alerts' in request.POST
-            user.replies_alerts = 'replies_alerts' in request.POST
-            user.save()
-        else:
-            context = {}
-            add_common_context(request, context, sidebar_style = SIDEBAR_NOAD)
-
-            context['user_edit'] = user
-
-            return render_to_response('sitio/admin_edit_profile.html', context,
-                                      context_instance=RequestContext(request))
-
-    return HttpResponseRedirect('/admin/users/')
-
-@internal_login_required
 def user_img(request, user_key, img_type = ''):
     '''Get formated user image.'''
-    usr = User.objects.get(id=userkey)
+    usr = User.objects.get(id=user_key)
     image_data = None
     if img_type == '':
         if usr.avatar:
@@ -1666,18 +1161,18 @@ def user_img(request, user_key, img_type = ''):
         else:
             return HttpResponseRedirect('/static/img/det/avatar.png')
     elif img_type == 'avatar_mini':
-        if usr.avatar_mini:
-            image_data = usr.avatar_mini
+        if usr.avatar:
+            image_data = usr.avatar
         else:
             return HttpResponseRedirect('/static/img/det/avatar_mini.png')
     elif img_type == 'avatar_big':
-        if usr.avatar_big:
-            image_data = usr.avatar_big
+        if usr.avatar:
+            image_data = usr.avatar
         else:
             return HttpResponseRedirect('/static/img/det/avatar_big.png')
     elif img_type == 'avatar_med':
-        if usr.avatar_med:
-            image_data = usr.avatar_med
+        if usr.avatar:
+            image_data = usr.avatar
         else:
             return HttpResponseRedirect('/static/img/det/avatar.png')
     elif img_type == 'background':
@@ -1692,44 +1187,36 @@ def user_img(request, user_key, img_type = ''):
             return HttpResponseRedirect('/static/img/det/avatar.png')
     return HttpResponse(image_data, 'image/png')
 
-@internal_login_required
+
 def story_img(request, story_key):
+    # FIXME check, is migrated code
     '''Get formated story image.'''
     story = Story.objects.get(id=story_key)
-    if story.avatar:
-        image_data = story.avatar
-    else:
-        image_data = story.image
+    image_data = story.image
     return HttpResponse(image_data, 'image/png')
 	
-@internal_login_required
+
 def story_original_img(request, story_key):
+    # FIXME check, is migrated code
     '''Get formated story image.'''
     story = Story.objects.get(id=story_key)
-    if story.image:
-        image_data = story.image
-    else:
-        image_data = story.avatar
+    image_data = story.image
     return HttpResponse(image_data, 'image/png')
 
-@internal_login_required
 def msg_img(request, msg_key):
+    # FIXME check, is migrated code
     '''Get formated comment image.'''
-    blob = blobstore.BlobInfo.get(blobstore.BlobKey(msg_key))
-    return blobstore_helper.send_blob(request, blob)
-
-@internal_login_required
-def msg_img_old(request, msg_key):
-    '''Get formated comment image. Old version compatibility.'''
-    msg = db.get(db.Key(msg_key))
+    msg = Msg.objects.get(id=msg_key)
     image_data = msg.image
     return HttpResponse(image_data, 'image/png')
 
-@internal_login_required
-def msg_doc(request, msg_key):
-    '''Get formated comment file.'''
-    blob = blobstore.BlobInfo.get(blobstore.BlobKey(msg_key))
-    return blobstore_helper.send_blob(request, blob, save_as=True)
+def msg_img_old(request, msg_key):
+    # FIXME check, is migrated code
+    '''Get formated comment image. Old version compatibility.'''
+    msg = Msg.objects.get(id=msg_key)
+    image_data = msg.image
+    return HttpResponse(image_data, 'image/png')
+
 
 # AJAX views:
 
@@ -1739,8 +1226,8 @@ def add_friend(request):
     friend_key = str(simplejson.loads(request.GET.get('friendkey', '')))
     user_key = str(simplejson.loads(request.GET.get('userkey', '')))
 
-    friend = db.get(db.Key(friend_key))
-    user = db.get(db.Key(user_key))
+    friend = User.objects.get(id=friend_key)
+    user = User.objects.get(id=user_key)
 
     relationship = Relationship()
     relationship.user = user
@@ -1767,16 +1254,16 @@ def remove_friend(request):
     friend_key = str(simplejson.loads(request.GET.get('friendkey', '')))
     user_key = str(simplejson.loads(request.GET.get('userkey', '')))
 
-    friend = db.get(db.Key(friend_key))
-    user = db.get(db.Key(user_key))
+    friend = User.objects.get(id=friend_key)
+    user = User.objects.get(id=user_key)
 
-    relationship_query = Relationship.objects.get(user=user,friend=friend)
+    relationship = Relationship.objects.get(user=user,friend=friend)
     relationship.delete()
-
+        
     return HttpResponse(simplejson.dumps(1))
 
 
-@internal_login_required
+
 def invalid_story(request):
     '''Invalid story messages page.'''
     context = {}
@@ -1787,7 +1274,7 @@ def invalid_story(request):
     return render_to_response('sitio/invalid_story.html', context,
                               context_instance=RequestContext(request))
 
-@internal_login_required
+
 def story_followers(request):
     '''Get followers of a story.'''
     story_key = str(simplejson.loads(request.GET.get('storykey', '')))
@@ -1800,7 +1287,7 @@ def story_followers(request):
                               context_instance=RequestContext(request))
     return HttpResponse(simplejson.dumps(result))
 
-@internal_login_required
+
 def story_print_options(request):
     '''Get print options for a story.'''
     story_key = str(simplejson.loads(request.GET.get('storykey', '')))
@@ -1811,7 +1298,7 @@ def story_print_options(request):
                               context_instance=RequestContext(request))
     return HttpResponse(simplejson.dumps(result))
 
-@internal_login_required
+
 def more_story_messages(request):
     '''Get more messages of a story.'''
     story_key = str(simplejson.loads(request.GET.get('storykey', '')))
@@ -1865,7 +1352,7 @@ def delete_avatar(request):
     '''Delete user's avatar.'''
     user_key = str(simplejson.loads(request.GET.get('userkey', '')))
 
-    user = db.get(db.Key(user_key))
+    user = User.objects.get(id=user_key)
     user.avatar_big = None
     user.avatar = None
     user.avatar_med = None
@@ -1878,8 +1365,18 @@ def delete_bg(request):
     '''Delete user's background.'''
     user_key = str(simplejson.loads(request.GET.get('userkey', '')))
 
-    user = db.get(db.Key(user_key))
+    user = User.objects.get(id=user_key)
     user.background = None
+    user.save()
+    return HttpResponse(simplejson.dumps(1))
+
+@login_required
+def delete_banner(request):
+    '''Delete user's banner.'''
+    user_key = str(simplejson.loads(request.GET.get('userkey', '')))
+
+    user = User.objects.get(id=user_key)
+    user.banner = None
     user.save()
     return HttpResponse(simplejson.dumps(1))
 
@@ -1887,9 +1384,7 @@ def delete_bg(request):
 def delete_message(request):
     '''Delete message.'''
     msg_key = str(simplejson.loads(request.GET.get('msgkey', '')))
-
-
-    msg = db.get(db.Key(msg_key))
+    msg = Msg.objects.get(id=msg_key)
     msg.status = 1
     msg.save()
 
@@ -1899,8 +1394,7 @@ def delete_message(request):
 def delete_reply(request):
     '''Delete reply.'''
     reply_key = str(simplejson.loads(request.GET.get('replykey', '')))
-
-    reply = db.get(db.Key(reply_key))
+    reply = Reply.objects.get(id=reply_key)
     reply.status = 1
     reply.save()
 
@@ -1912,10 +1406,13 @@ def vote_msg(request):
     msg_key = str(simplejson.loads(request.GET.get('msgkey', '')))
     vote_type = str(simplejson.loads(request.GET.get('votetype', '')))
 
-    msg = db.get(db.Key(msg_key))
+    msg = Msg.objects.get(id=msg_key)
     user = get_current_user(request)
 
-    vote = Vote.objects.get(author=user,msg=msg)
+    try:
+        vote = Vote.objects.get(author=user,msg=msg)
+    except:
+        vote = None
 
     if not vote:
         vote = Vote()
@@ -1951,7 +1448,10 @@ def vote_reply(request):
     reply = Reply.objects.get(id=reply_key)
     user = get_current_user(request)
 
-    vote = Vote.objects.get(author=1,reply=reply)
+    try:
+        vote = Vote.objects.get(author=user,reply=reply)
+    except:
+        vote = None
 
     if not vote:
         vote = Vote()
@@ -1987,8 +1487,11 @@ def vote_story(request):
     story = Story.objects.get(id=story_key)
     user = get_current_user(request)
 
-    vote = Vote.objects.get(author=user,story=story)
-
+    try:
+        vote = Vote.objects.get(author=user,story=story)
+    except:
+        vote = None
+        
     if not vote:
         vote = Vote()
         vote.story = story
@@ -2018,31 +1521,10 @@ def vote_story(request):
 	
 
 
-##### utils / indev #####
-
-
-### OAuth access ###
-
-def get_access_token(request):
-    saved_request_token = gdata.gauth.AeLoad('myKey')
-    urlpath = request.path + "?oauth_verifier=" + request.GET.get('oauth_verifier', '') + "&oauth_token=" + request.GET.get('oauth_token', '')
-    request_token = gdata.gauth.AuthorizeRequestToken(saved_request_token, urlpath)
-
-    client = gdata.docs.client.DocsClient(source='ndw-social-v1')
-    access_token = client.GetAccessToken(request_token)
-    client.auth_token = access_token
-
-    user = oauth.get_current_user()
-    return HttpResponse(user)
-
-    #feed = client.GetDocList()
-    #user = oauth.get_current_user()
-    #return HttpResponse(feed)
-    #return HttpResponseRedirect('/')
-    
-   
+##### Admin utilities #####   
 
 @login_required
+@admin_required
 def get_story_from_x(request):
     '''Get story from external source'''
     # cargar url
@@ -2093,6 +1575,7 @@ def get_story_from_x(request):
         return HttpResponse(simplejson.dumps( '0' ))
 
 @login_required
+@admin_required
 def get_stories_from_x(request):
     '''Get stories from external source'''
 
@@ -2219,46 +1702,7 @@ def add_stories_from_feed(request):
 
 @login_required
 @admin_required
-def update_tasks(request):
-    try:
-        for s in Story.all():
-            s.status = 0
-            s.save()
-            if s.pop == None:
-                s.pop = 0
-                s.save()
-
-        for m in Msg.all():
-            if m.status == None:
-                m.status = 0
-                m.save()
-            if m.pop == None:
-                m.pop = 0
-                m.save()
-
-        for r in Reply.all():
-            if r.status == None:
-                r.status = 0
-                r.save()
-            if r.pop == None:
-                r.pop = 0
-                r.save()
-
-        for u in User.all():
-            if u.pop == None:
-                u.pop = 0
-            u.save()
-
-        return HttpResponse('ok')
-    except Exception, e:
-        return HttpResponse(str(e))
-
-
 def cache_flush(request):
     memcache.flush_all()
     return HttpResponse('Cache updated.')
 
-def delete_spam(request):
-    q = Msg.objects.filter(client_ip='').delete()
-    return HttpResponse('Ok.')
-   

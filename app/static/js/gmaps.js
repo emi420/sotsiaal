@@ -41,7 +41,7 @@
 	  
 		// Inicializa el mapa
         map = new google.maps.Map2(document.getElementById("map"));
-		center = new GLatLng(-38.561984, -58.7297)
+		center = new GLatLng(-34.603753,-58.381605)
         map.setCenter(center, 4); // Argentina
 		map.setUIToDefault();
 		var x= map.getMapTypes(); 
@@ -76,22 +76,6 @@
 			  document.myForm.mapType.value = "hybrid"; 
 			} 
 		  }); 
-		/*GEvent.addListener(map, 'dblclick', function() {
-			map.clearOverlays() ;
-		    marker = new GMarker(center, {draggable: true});
-
-			GEvent.addListener(marker, 'dragend', function() {
-				document.getElementById('map_latlng').value = marker.getPoint().lat() + ',' + marker.getPoint().lng() ;
-				document.getElementById('map_zoom').value = map.getZoom() ;
-			});
-
-			map.addOverlay(marker);
-			
-			document.getElementById('map_latlng').value = marker.getPoint().lat() + ',' + marker.getPoint().lng() ;
-			document.getElementById('map_zoom').value = map.getZoom() ;
-			
-			return 0 ;
-		});*/
 		
 		map.addOverlay(marker);
 	  }

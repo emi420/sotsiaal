@@ -159,6 +159,11 @@
             AjaxRequest('delete_bg', ['userkey'], [userkey], onDeleteCurrentBgSuccess);
         }
 
+        function doDeleteCurrentBanner(userkey) {
+            ebid('delete-current-banner').getElementsByTagName('a')[0].innerHTML = 'Borrando..' ;
+            AjaxRequest('delete_banner', ['userkey'], [userkey], onDeleteCurrentBannerSuccess);
+        }
+
         function doDeleteMsg(msgkey) {
             ebid('deletemsg-' + msgkey).innerHTML = 'Borrando..' ;
             AjaxRequest('delete_message', ['msgkey'], [msgkey], onDeleteMsgSuccess);
@@ -263,6 +268,11 @@
         function onDeleteCurrentBgSuccess(response) {
             ebid('delete-current-bg').style.display = 'none' ;
             ebid('img-current-bg').src = '/static/img/bg-body.png' ;
+        }
+
+        function onDeleteCurrentBannerSuccess(response) {
+            ebid('delete-current-banner').style.display = 'none' ;
+            ebid('img-current-banner').src = '/static/img/det/avatar.png' ;
         }
 
         function onDeleteMsgSuccess(response) {

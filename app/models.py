@@ -14,8 +14,6 @@ class User(models.Model):
     banner = models.ImageField(upload_to="users/",blank=True)
     date = models.DateTimeField(auto_now_add=True, blank=True)
     password = models.TextField()
-    #TODO: Google users support
-    #googleuser = db.UserProperty()
     recovery_key = models.TextField(blank=True)
     email = models.TextField()
     activation_key = models.TextField(blank=True)
@@ -56,13 +54,12 @@ class Story(models.Model):
     status = models.IntegerField()
     client_ip = models.TextField()
     block_anonymous = models.BooleanField()
-    #FIXME
+    #FIXME (tags support)
     #tags = SeparatedValuesField()
 
     def generate_path(self):
         '''Generate path to the story.'''
         return '/%s/%s/' % (self.category.name, self.url)
-
 
 class Msg(models.Model):
     title = models.TextField()

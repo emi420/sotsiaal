@@ -22,18 +22,14 @@
                                         {% ifequal msg.msg_type 'video' %}
                                             <br /><br />
                                             <span class="comment-video">
-                                                <object width="425" height="344">
-                                                    <param name="movie" value="{{ msg.video }}?hl=es&fs=1&rel=0"></param>
-                                                    <param name="allowFullScreen" value="true"></param>
-                                                    <param name="allowscriptaccess" value="always"></param>
-                                                    <param name="wmode" value="transparent"></param>
-                                                    <embed src="{{ msg.video }}" type="application/x-shockwave-flash" wmode="transparent" allowscriptaccess="always" allowfullscreen="true" width="425" height="344"></embed>
-                                                </object>
+
+                                                <iframe width="420" height="315" src="http://www.youtube.com/embed/{{ msg.video }}" frameborder="0" allowfullscreen></iframe>
+
                                             </span>
                                         {% else %}
                                             {% ifequal msg.msg_type 'map' %}
                                                 <br /><br />
-                                                <img src="http://maps.google.com/staticmap?size=477x250&zoom={{ msg.map_zoom }}&key={{ gmaps_api_key }}&sensor=true&markers={{ msg.map }},bluea"/>
+                                                <img src="http://maps.googleapis.com/maps/api/staticmap?&zoom={{ msg.map_zoom }}&size=477x250&maptype=roadmap&markers=color:blue%7Clabel:S%7C{{ msg.map }}&sensor=false"/>
                                                 {% else %}
                                                     {% ifequal msg.msg_type 'doc' %}
                                                         <a class="{{ msg.mime_type }}" target="_blank" href="/msg_doc/{{ msg.document }}/">{{ msg.filename }} </a>                                                    
@@ -160,7 +156,7 @@
 
                                 <div class="clear"><!-- --></div>
                                 {% if allow_comments %}
-                                    <a class="lnk-reply" href="javascript: return void()" onclick="document.getElementById('reply-form-{{ reply.id }}').style.display='block'" ><span>Responder</span></a>                       
+                                    <a style="display:none" class="lnk-reply" href="javascript: return void()" onclick="document.getElementById('reply-form-{{ reply.id }}').style.display='block'" ><span>Responder</span></a>                       
                                 {% endif %}
 
                                 {{ reply.sub_replies_html }}

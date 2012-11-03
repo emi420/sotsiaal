@@ -1,12 +1,12 @@
                     <div class="thread" id="thread-{{ parent_reply.id }}">
                         <br />
-                        <form class="enviar-mensaje formulario" action="/add_message/" method="post">
+                        <form style="display:none" class="enviar-mensaje formulario" action="/add_message/" method="post">
 							<div id="reply-form-{{ parent_reply.id }}" style="display:none" class="reply first cform">
 								<textarea name="title" onclick="this.select();" class="input-text alt" rows="1">{{ default_comment_text }}</textarea>
 								<input type="hidden" value="{{ parent_reply.id }}" name="replytor" />
+    							<div class="csrf_token">{% csrf_token %}</div>
 								<span class="button small"><input type="submit" value="Responder" /></span>
 							</div>
-							{% csrf_token %}
 					    </form>
                             {% for reply in parent_reply.sub_replies %}
                                 <div class="reply{% if reply.classname %}-{{ reply.classname }}{% endif %}" id="reply-{{ reply.id }}">                             

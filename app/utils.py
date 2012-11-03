@@ -1,66 +1,24 @@
 import urllib
 import datetime
 
-#from google.appengine.ext import db
-
 from django.utils.http import urlquote
 from django.http import HttpResponseRedirect, HttpResponse
 from django.conf import settings
-#from google.appengine.api import users
 from app.models import User, Site
 
 def login_required(f):
     '''Custom login required decorator, only on internal site.'''
     def wrap(request, *args, **kwargs):
-        if (settings.SITE_MODE == settings.SITE_MODE_INTERNAL) and 'logged_user' not in request.session:
-            user = users.get_current_user()
-            if not user:
-            	return HttpResponseRedirect(users.create_login_url(urlquote(request.path)))
-            else:
-                 domain = user.email()[user.email().find('@') + 1 : len(user.email())] 
-                 site = Site().all().filter('domain =', domain).get()
-                 if site != 'None':
-                 	request.session['site'] = site
-            user_query = db.GqlQuery('SELECT * FROM User WHERE email = :1', user.email())
-            usr = user_query.get()
-            if usr:
-                 if request.session['site']:
-	                 request.session['logged_user'] = str(usr.key())
-	                 return HttpResponseRedirect(urlquote(request.path))
-                 else:
-                     return HttpResponseRedirect('/account_message/?message=12&username=' + user.email() + '&domain=' + domain)
-            else:
-                 if request.session['site']:
-                     usr = User()
-                     usr.email = user.email()
-                     usr.nickname = user.email()[0 : user.email().find('@') ] 
-                     usr.googleuser = user
-                     usr.is_admin = False
-                     usr.comments_alerts = True
-                     usr.replies_alerts = True
-                     usr.pop = 0
-                     usr.activation_key = ''
-                     usr.put()
-                     request.session['logged_user'] = str(usr.key())
-                     return HttpResponseRedirect('/account_message/?message=2')
-                 else:
-                     return HttpResponseRedirect('/account_message/?message=12&v=1&username=' + user.email() + '&domain=' + domain)
-
+        user = get_current_user(request)
+        if not user:
+            return HttpResponseRedirect("/login/")
         else:
             return f(request, *args, **kwargs)
+        
     wrap.__doc__=f.__doc__
     wrap.__name__=f.__name__
     return wrap
 
-
-# TODO
-def internal_login_required(f):
-    '''Custom login required decorator, only on internal site.'''
-    def wrap(request, *args, **kwargs):
-        return f(request, *args, **kwargs)
-    wrap.__doc__=f.__doc__
-    wrap.__name__=f.__name__
-    return wrap
 
 def logged_or_fail(f):
     '''Logged-only views decorator.'''
@@ -69,15 +27,6 @@ def logged_or_fail(f):
             return HttpResponseRedirect('/')
         else:
             return f(request, *args, **kwargs)
-    wrap.__doc__=f.__doc__
-    wrap.__name__=f.__name__
-    return wrap
-
-# TODO
-def internal_logged_or_fail(f):
-    '''Logged-only views decorator, only on internal site.'''
-    def wrap(request, *args, **kwargs):
-        return f(request, *args, **kwargs)
     wrap.__doc__=f.__doc__
     wrap.__name__=f.__name__
     return wrap
