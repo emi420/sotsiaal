@@ -24,6 +24,7 @@ from django.core.files.base import ContentFile
 from django.db.models import Q
 from django.core.mail import send_mail
 import feedparser
+import nltk
 
 # sidebar styles
 SIDEBAR_NONE = 0
@@ -111,7 +112,7 @@ def add_stories_context(request, context, stories):
     for story in stories_paginated:
         msgs = Msg.objects.filter(storyparent=story)
         story.comments = msgs.count()
-        story.shortdesc = story.bio[0:140]
+        story.shortdesc = nltk.clean_html(story.bio[0:140])
 
     context['stories'] = stories_paginated
     context['pages'] = pages

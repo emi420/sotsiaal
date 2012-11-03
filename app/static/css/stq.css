@@ -1965,3 +1965,7 @@ a.expand {
 .bmsg {
 	font-weight:400!important;
 }
+
+.content-list-content img {
+    max-width: 100%;
+}
