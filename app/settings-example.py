@@ -2,24 +2,18 @@ import datetime
 
 # Custom app settings
 
-PROFILE_CULTURA = 'cultura'
-
-APP_PROFILE = PROFILE_CULTURA
-
 ALLOWED_USER_DOMAINS = ''
 
-SITE_MODE_INTERNAL = 'internal'
-SITE_MODE_PUBLIC = 'public'
-
-SITE_MODE = SITE_MODE_PUBLIC
-SITE_DOMAIN = 'sotsiaal.voolks.com'
+SITE_DOMAIN = 'sotsiaal.yourdomain.com'
 SITE_BASE_URL = 'http://' + SITE_DOMAIN
 
-ANONYMOUS_USER_MAIL = 'anon@voolks.com'
+ANONYMOUS_USER_MAIL = 'anon@yourdomain.com'
 ANONYMOUS_DATETIME = datetime.datetime(1900, 1, 1)
 
+CONTACT_EMAIL = 'info@yourdomain.com'
+
 ADMINS = (
-     ('Admin', 'emi420@voolks.com'),
+     ('Admin', 'admin@yourdomain.com'),
 )
 
 # require account activation via email
@@ -32,23 +26,21 @@ ENABLE_MAIL_ALERTS = False
 ENABLE_BIGFILES = False
 
 DEFAULT_COMMENT_TEXT = 'Escribe un comentario...'
-DEFAULT_SIDEBAR_STORIES_TITLE = 'Historias relacionadas'
+DEFAULT_SIDEBAR_STORIES_TITLE = 'Similares'
 
-# app profile related settings
-if APP_PROFILE == PROFILE_CULTURA:
-    SITE_MAIL = 'emi420@gmail.com'
+SITE_MAIL = 'contact@yourdomain.com'
 
-    FACEBOOK_API_KEY = ''
-    FACEBOOK_APPLICATION_SECRET = ''
+FACEBOOK_API_KEY = ''
+FACEBOOK_APPLICATION_SECRET = ''
 
-    GMAPS_API_KEY = ''
+GMAPS_API_KEY = ''
 
-    GJS_API_KEY = ''
+GJS_API_KEY = ''
 
-    RECAPTCHA_KEY = ''
-    RECAPTCHA_PRIVATEKEY = ''
-    
-    ANALYTICS_API_KEY = ''
+RECAPTCHA_KEY = ''
+RECAPTCHA_PRIVATEKEY = ''
+
+ANALYTICS_API_KEY = ''
 
 TWITTER_API_USER = ''
 TWITTER_API_KEY = ''
@@ -56,14 +48,6 @@ TWITTER_API_KEY = ''
 
 GOOGLE_AD_CLIENT = ''
 GOOGLE_AD_SLOT = ''
-
-# Used during the handshake process
-
-CONSUMER_KEY = u''
-CONSUMER_SECRET = u''
-SCOPES = ['']  
-CALLBACK_URL = u'http://cultura.voolks.com/get_access_token/'
-
 
 # Django settings for app project.
 
@@ -78,8 +62,8 @@ MANAGERS = ADMINS
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': '/var/www/sotsiaal/dev.sqlite',                      # Or path to database file if using sqlite3.
+        'ENGINE': '', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+        'NAME': '',                      # Or path to database file if using sqlite3.
         'USER': '',                      # Not used with sqlite3.
         'PASSWORD': '',                  # Not used with sqlite3.
         'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
@@ -112,7 +96,7 @@ USE_TZ = True
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/home/media/media.lawrence.com/media/"
-MEDIA_ROOT = '/var/www/sotsiaal/app/uploads/'
+MEDIA_ROOT = ''
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.
@@ -123,7 +107,7 @@ MEDIA_URL = ''
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/home/media/media.lawrence.com/static/"
-STATIC_ROOT = '/var/www/sotsiaal/app/static/'
+STATIC_ROOT = ''
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"

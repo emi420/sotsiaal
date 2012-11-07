@@ -991,7 +991,7 @@ def send_contact_msg(request):
     msg =  request.POST.get('msg', '')
     if email and msg:
         sender_adress = settings.SITE_MAIL
-        stq_address = 'sotsiaal@voolks.com'
+        stq_address = settings.CONTACT_EMAIL
         subject = 'Contacto'
         body = email + ' escribe:  ' + msg
         send_mail(subject, body, sender_adress,[stq_address], fail_silently=True)
