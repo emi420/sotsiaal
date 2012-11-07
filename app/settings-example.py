@@ -2,12 +2,16 @@ import datetime
 
 # Custom app settings
 
-PROFILE_DEFAULT = 'cultura'
+PROFILE_CULTURA = 'cultura'
 
-APP_PROFILE = PROFILE_DEFAULT
+APP_PROFILE = PROFILE_CULTURA
 
 ALLOWED_USER_DOMAINS = ''
 
+SITE_MODE_INTERNAL = 'internal'
+SITE_MODE_PUBLIC = 'public'
+
+SITE_MODE = SITE_MODE_PUBLIC
 SITE_DOMAIN = 'sotsiaal.voolks.com'
 SITE_BASE_URL = 'http://' + SITE_DOMAIN
 
@@ -28,10 +32,10 @@ ENABLE_MAIL_ALERTS = False
 ENABLE_BIGFILES = False
 
 DEFAULT_COMMENT_TEXT = 'Escribe un comentario...'
-DEFAULT_SIDEBAR_STORIES_TITLE = 'Similares'
+DEFAULT_SIDEBAR_STORIES_TITLE = 'Historias relacionadas'
 
 # app profile related settings
-if APP_PROFILE == PROFILE_DEFAULT:
+if APP_PROFILE == PROFILE_CULTURA:
     SITE_MAIL = 'emi420@gmail.com'
 
     FACEBOOK_API_KEY = ''
@@ -52,6 +56,13 @@ TWITTER_API_KEY = ''
 
 GOOGLE_AD_CLIENT = ''
 GOOGLE_AD_SLOT = ''
+
+# Used during the handshake process
+
+CONSUMER_KEY = u''
+CONSUMER_SECRET = u''
+SCOPES = ['']  
+CALLBACK_URL = u'http://cultura.voolks.com/get_access_token/'
 
 
 # Django settings for app project.
