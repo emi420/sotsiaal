@@ -23,6 +23,8 @@ from app import captcha
 from django.core.files.base import ContentFile
 from django.db.models import Q
 from django.core.mail import send_mail
+import feedparser
+import nltk
 
 # sidebar styles
 SIDEBAR_NONE = 0
@@ -110,7 +112,7 @@ def add_stories_context(request, context, stories):
     for story in stories_paginated:
         msgs = Msg.objects.filter(storyparent=story)
         story.comments = msgs.count()
-        story.shortdesc = story.bio[0:140]
+        story.shortdesc = nltk.clean_html(story.bio[0:140])
 
     context['stories'] = stories_paginated
     context['pages'] = pages
@@ -144,6 +146,7 @@ def messages_paginated(story, page, context):
             formated_difference = get_formated_time(difference)
             m.difference = formated_difference[0]
             m.difference_unit = formated_difference[1]
+            
             if m.msg_type == 'video':
                 m.video = m.video.replace('/watch?','/')
                 m.video = m.video.replace('=','/')
@@ -677,7 +680,6 @@ def save_profile(request):
     user.replies_alerts = 'replies_alerts' in request.POST
     user.invisible_mode = 'invisible_mode' in request.POST
 
-    #import pdb; pdb.set_trace()
     #try:
     user.save()
     return HttpResponseRedirect('/edit_profile/?error=0') # saved profile
@@ -768,11 +770,6 @@ def add_story(request):
 
             story.author = usr
             story.url = urlquote(request.POST.get('title', '').replace('/', '-').replace(' ', '-').lower())
-            story.block_anonymous = 'block_anonymous' in request.POST
-            urlprev_query = Story.objects.filter(url=story.url)
-            urlprev_count = urlprev_query.count()
-            if urlprev_count:
-                story.url = story.url + '-' + str(story.id)
             story.title = request.POST.get('title', '')
 
             story.bio = request.POST.get('bio', '')
@@ -789,6 +786,12 @@ def add_story(request):
             	story.client_ip = '127.0.0.1'
             	#story.date = settings.ANONYMOUS_DATETIME
             story.save()
+
+            urlprev_query = Story.objects.filter(url=story.url)
+            urlprev_count = len(urlprev_query)
+            if urlprev_count > 0:
+                story.url = story.url + '-' + str(story.id)
+                story.save()
 
             if('img' in request.FILES):
                 file_content = ContentFile(request.FILES['img'].read())
@@ -920,6 +923,7 @@ def add_message(request):
             if title:
                 msg = Msg()
                 msg.client_ip = request.META['REMOTE_ADDR']
+                msg.date = datetime.datetime.now()
                 msg.storyparent = story
                 msg.author = usr
                 msg.title = request.POST.get('title', '')
@@ -1525,184 +1529,38 @@ def vote_story(request):
 
 @login_required
 @admin_required
-def get_story_from_x(request):
-    '''Get story from external source'''
-    # cargar url
-    feed = request.GET.get('feed')
-    result = urlfetch.fetch(feed)
-    context = {}
+def rss_importer(request):
+    # Import data from feed
+    # FIXME CHECK
+    entries = feedparser.parse(request.GET.get('feed', ''))["entries"]
+    category = request.GET.get('category', '')
+    for entry in entries:
+        story = Story()
+        story.title = entry.title
+        story.bio = entry.description
+        story.link = entry.link
+        story.author = get_current_user(request)
+        story.category = Category.objects.get(name=category)
+        story.pop = 0
+        story.karma = 0
+        story.status = 0
+        story.site_id
+        story.hkarma = 0
+        story.site = Site.objects.get(domain=settings.SITE_DOMAIN)
+        story.url = urlquote(story.title.replace('/', '-').replace(' ', '-').lower())
+        story.save()
 
-    user = get_current_user(request) 
-    if user:
-	    context['is_anon'] = '0'
-    else:
-        context['is_anon'] = '1'
-        chtml = captcha.displayhtml(
-        public_key = settings.RECAPTCHA_KEY,
-          use_ssl = False,
-          error = None)
-
-    #return HttpResponse(simplejson.dumps( 'ok1,ok2'))
-    if result.status_code == 200:
-        ibuffer = result.content  
-
-        #buscar subject
-        ctitle = ''
-        marker_pos = ibuffer.find("Viewing cable") + 14
-        str_closetabletag_pos = ibuffer.find('h3', marker_pos) - 2
-        if marker_pos > 0 and str_closetabletag_pos > 0:
-             ctitle = ibuffer[marker_pos:str_closetabletag_pos ]
-    
-        #buscar summary
-        csummary = ''
-        marker_pos2 = ibuffer.find('#par1', marker_pos) + 13
-        str_closetabletag_pos = ibuffer.find('#par2', marker_pos2) - 24
-        if marker_pos2 > 0 and str_closetabletag_pos > 0:
-             csummary = ibuffer[marker_pos2:str_closetabletag_pos]
-    
-        categories = Category.objects.filter(site=request.session['site']).order_by('name')
-
-        context['ctitle'] = ctitle
-        context['categories'] = categories
-        context['csummary'] = csummary.replace('&#x000A;', ' ').replace('&#x', ' ')
-        context['url'] = request.GET.get('feed')
-         
-        #devuelve el formulario de carga
-        resultr = render_to_string('sitio/new_story_from_x.html', context,
-                            context_instance=RequestContext(request))
-        return HttpResponse(resultr)
-    else:
-        return HttpResponse(simplejson.dumps( '0' ))
-
-@login_required
-@admin_required
-def get_stories_from_x(request):
-    '''Get stories from external source'''
-
-    # cargar url
-    url = request.GET.get('feed')
-    context = {}
-    context['get_feed'] = url
-    result = urlfetch.fetch(url)
-    if result.status_code == 200:
-        ibuffer = result.content  
-
-    #buscar inicio y fin de la tabla
-    marker_pos = ibuffer.find("<table", ibuffer.find("pane big"))
-    str_closetabletag_pos = ibuffer.find('</table>', marker_pos)
-    if marker_pos > 0 and str_closetabletag_pos > 0:
-         str_subbuffer = ibuffer[marker_pos:str_closetabletag_pos]
-         href_is_valid = True
-         str_values = ''
-         ipos = 0
-         
-         # buscar urls
-         while href_is_valid:
-               str_opentag_pos = str_subbuffer.find('href=', ipos) + 6
-               str_closetag_pos = str_subbuffer.find(".html", str_opentag_pos) + 5
-               str_href = str_subbuffer[str_opentag_pos : str_closetag_pos]
-               ipos = str_closetag_pos 
-               if str_href.find('cable') > 0 and str_href.find('cable') < 10:
-                   str_values += "http://www.wikileaks.ch" + str_href + ","
-               if str_subbuffer.find('href=', ipos) < 0:
-                   href_is_valid = False
-         urls = str_values.split(',')
-         context['urls'] = urls
-         context['urls_count'] = len(urls)
-         
-         #devuelve el formulario de carga
-         resultr = render_to_string('sitio/new_story_from_x.html', context,
-                              context_instance=RequestContext(request))
-         return HttpResponse(resultr)
-    else:
-         return HttpResponse(simplejson.dumps('error 1'))
-    return HttpResponse(simplejson.dumps('error 2'))
-
-@login_required
-@admin_required
-def get_stories_from_feed(request):
-    '''Get stories from feed'''
-    feed = str(simplejson.loads(request.GET.get('feed', '')))
-    buffer = urllib.urlopen(feed).read()
-    if buffer:
-         return HttpResponse(simplejson.dumps( buffer ))
-    else:
-	     return 2
-
-
-@login_required
-@admin_required
-def add_stories_from_feed(request):
-    '''Add stories in bulk, from feed'''
-    # FIXME
-    for i in range( int( request.POST.get('items-count') ) ):
-        title = request.POST.get('title_' + str(i))
-        description = request.POST.get('description_' + str(i))
-        category = request.POST.get('category_' + str(i))
-        link = request.POST.get('link_' + str(i))
-        # story
-        story = None
-        if title and description and category:
-            story = Story()
-            story.client_ip = request.META['REMOTE_ADDR']
-		
-            story.link = link
-            if ( story.link ):
-                 exist_prev_query = Story.objects.get(link=story.link)
-                 exist_prev_count = exist_prev_query.count()
-                 if exist_prev_count:
-                     prev_story = exist_prev_query.get()
-                     return HttpResponseRedirect( prev_story.generate_path() + '?msg=1' ) # exist prev history, same title		
-
-            usr = get_current_user(request)
-
-            use_anonymous = False
-            if ( usr == None ):
-                use_anonymous = True
-            else:
-                try:
-                    if usr.invisible_mode:
-                        use_anonymous = True
-                except:
-                    pass
-
-            if use_anonymous:
-                usr = User.objects.get(email=ANONYMOUS_USER_MAIL)
-
-            story.author = usr
-            story.url = urlquote(title.replace('/', '-').replace(' ', '-').lower())
-            urlprev_query = Story.get(url=story.url)
-            urlprev_count = urlprev_query.count()
-            if urlprev_count:
-                story.save()
-                story.url = story.url + '-' + str(story.id)
-            story.title = title
-
-            story.bio = description
-            if story.link and not story.link.strip().startswith('http'):
-                story.link = 'http://' + story.link.strip()
-
-            category = Category.objects.filter(name=category)[0]
-            story.category = category
-            story.pop = 1
-            story.karma = 10
-            if usr.email == settings.ANONYMOUS_USER_MAIL:
-            	story.client_ip = '127.0.0.1'
-            	#story.date = settings.ANONYMOUS_DATETIME
+        urlprev_query = Story.objects.filter(url=story.url)
+        urlprev_count = len(urlprev_query)
+        if urlprev_count > 0:
+            story.url = story.url + '-' + str(story.id)
             story.save()
-            # first vote
-            vote = Vote()
-            vote.value = 1
-            vote.story = story
-            vote.author = usr
-            vote.save()
-
-    return HttpResponseRedirect('/')
-
+    return HttpResponse('1')
 
 @login_required
 @admin_required
 def cache_flush(request):
     memcache.flush_all()
     return HttpResponse('Cache updated.')
+
 

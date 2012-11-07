@@ -7,24 +7,16 @@ admin.autodiscover()
 from django.conf.urls.defaults import *
 from django.views.generic.simple import direct_to_template
 
-#from sitio.feed import AllStories, StoriesByCategory, StoriesByUser
-
-#feeds = {
-#    'stories': AllStories,
-#    'categories': StoriesByCategory,
-#    'users': StoriesByUser,
-#}
-
 urlpatterns = patterns('',
-    url(r'^admin/', include(admin.site.urls)),
+    (r'^admin/', include(admin.site.urls)),
     (r'^media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT}),
     (r'^static/(.*)$', 'django.views.static.serve', {'document_root': settings.STATIC_URL})
 )
 
 urlpatterns += patterns('app.views',
     (r'^$','index'),
+    (r'^rss_importer/$', 'rss_importer'),
     (r'^legal/$', 'legal'),
-    (r'^get_access_token/$', 'get_access_token'),
     (r'^contact/$', 'contact'),
     (r'^search/$', 'search'),
     (r'^cache_flush/$', 'cache_flush'),
@@ -43,7 +35,6 @@ urlpatterns += patterns('app.views',
     (r'^save_pass/$', 'save_pass'),
     (r'^add_story/$', 'add_story'),
     (r'^delete_story/(.*)/$', 'delete_story'),
-    (r'^add_stories_from_feed/$', 'add_stories_from_feed'), 
     (r'^add_message/$', 'add_message'), 
     (r'^send_contact_msg/$', 'send_contact_msg'), 
     (r'^send_recovery_pass/$', 'send_recovery_pass'), 
