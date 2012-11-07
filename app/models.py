@@ -89,7 +89,6 @@ class Story(models.Model):
     def __unicode__(self):
         return self.title
 
-
 class Msg(models.Model):
     title = models.TextField()
     image = models.ImageField(upload_to="msgs/")
@@ -99,7 +98,7 @@ class Msg(models.Model):
     map = models.TextField(blank=True)
     map_zoom = models.IntegerField(null=True)
     author = models.ForeignKey('User')
-    date = models.DateTimeField(auto_now_add=True, blank=True)
+    date = models.DateTimeField(auto_now_add=False, blank=True)
     pop = models.IntegerField()
     storyparent = models.ForeignKey('Story')
     status = models.IntegerField()
@@ -112,7 +111,6 @@ class Msg(models.Model):
 
     def __unicode__(self):
         return self.title
-
 
 class Reply(models.Model):
     author = models.ForeignKey('User')
@@ -162,9 +160,6 @@ class Relationship(models.Model):
     def friend_nickname(self):
         return self.friend.nickname
 
-    def __unicode__(self):
-        return self.user_nickname + ' ' + self.friend_nickname
-
     
 class Vote(models.Model):
     date = models.DateTimeField(auto_now_add=True, blank=True)
@@ -179,6 +174,12 @@ class Vote(models.Model):
 
     def story_title(self):
         return self.story.title
+
+    def msg_title(self):
+        return self.msg.title
+
+    def reply_title(self):
+        return self.reply.title
         
     class Meta:
         verbose_name = "Voto"

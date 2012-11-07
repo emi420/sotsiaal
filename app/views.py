@@ -146,6 +146,7 @@ def messages_paginated(story, page, context):
             formated_difference = get_formated_time(difference)
             m.difference = formated_difference[0]
             m.difference_unit = formated_difference[1]
+            
             if m.msg_type == 'video':
                 m.video = m.video.replace('/watch?','/')
                 m.video = m.video.replace('=','/')
@@ -679,7 +680,6 @@ def save_profile(request):
     user.replies_alerts = 'replies_alerts' in request.POST
     user.invisible_mode = 'invisible_mode' in request.POST
 
-    #import pdb; pdb.set_trace()
     #try:
     user.save()
     return HttpResponseRedirect('/edit_profile/?error=0') # saved profile
@@ -923,6 +923,7 @@ def add_message(request):
             if title:
                 msg = Msg()
                 msg.client_ip = request.META['REMOTE_ADDR']
+                msg.date = datetime.datetime.now()
                 msg.storyparent = story
                 msg.author = usr
                 msg.title = request.POST.get('title', '')

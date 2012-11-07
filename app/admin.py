@@ -20,7 +20,7 @@ class StoryAdmin(admin.ModelAdmin):
 
 class MsgAdmin(admin.ModelAdmin):
     model = Msg
-    list_display = ('title','msg_type')
+    list_display = ('title','msg_type', 'date')
 
 class ReplyAdmin(admin.ModelAdmin):
     model = Reply
@@ -32,7 +32,7 @@ class RelationshipAdmin(admin.ModelAdmin):
 
 class VoteAdmin(admin.ModelAdmin):
     model = Vote
-    list_display = ('value','story_title','author_nickname')
+    list_display = ('value','story_title','msg_title', 'author_nickname')
 
 admin.site.register(User, UserAdmin)
 admin.site.register(Site, SiteAdmin)

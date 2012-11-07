@@ -12,7 +12,7 @@ SITE_MODE_INTERNAL = 'internal'
 SITE_MODE_PUBLIC = 'public'
 
 SITE_MODE = SITE_MODE_PUBLIC
-SITE_DOMAIN = 'cultura.voolks.com'
+SITE_DOMAIN = 'sotsiaal.voolks.com'
 SITE_BASE_URL = 'http://' + SITE_DOMAIN
 
 ANONYMOUS_USER_MAIL = 'anon@voolks.com'
