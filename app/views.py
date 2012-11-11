@@ -1540,7 +1540,7 @@ def importer(request):
     category = request.GET.get('category', '')
     
     for entry in entries:
-       prev_story = None
+        prev_story = None
         try:
             # Custom data
             prev_story = Story.objects.filter(title=entry.titulo,bio=entry.descripcion)[0]
