@@ -547,6 +547,9 @@ def add_user(request):
     # FIXME check, is migrated code for POST method
 
     if request.POST.get('nickname', '') and \
+       (any([request.POST.get('email', '').endswith(domain)
+            for domain in settings.ALLOWED_USER_DOMAINS]) or \
+       settings.SITE_MODE == settings.SITE_MODE_PUBLIC ) and \
        mail.is_email_valid(request.POST.get('email', '')) and \
        request.POST.get('password', ''):
         if request.POST.get('password', '') == request.POST.get('rpassword', ''):
@@ -1537,8 +1540,7 @@ def importer(request):
     category = request.GET.get('category', '')
     
     for entry in entries:
-    
-        prev_story = None
+       prev_story = None
         try:
             # Custom data
             prev_story = Story.objects.filter(title=entry.titulo,bio=entry.descripcion)[0]
@@ -1565,13 +1567,6 @@ def importer(request):
             story.site = Site.objects.get(domain=settings.SITE_DOMAIN)
             story.url = urlquote(story.title.replace('/', '-').replace(' ', '-').lower())
             story.save()
-    
-            urlprev_query = Story.objects.filter(url=story.url)
-            urlprev_count = len(urlprev_query)
-            if urlprev_count > 0:
-                story.url = story.url + '-' + str(story.id)
-                story.save()
-                
     return HttpResponse('1')
 
 @login_required

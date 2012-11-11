@@ -1,5 +1,5 @@
 Django==1.4.1
 PIL==1.1.7
-feedparser==5.1.2
-nltk==2.0.4
-python-dateutil==1.5
+PyRSS2Gen==1.0.0
+Twisted==11.0.0
+
