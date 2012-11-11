@@ -22,6 +22,9 @@ USE_MAIL_ACTIVATION = False
 # enable email alerts
 ENABLE_MAIL_ALERTS = False
 
+# image requireds on new stories
+NEW_STORY_REQUIRE_IMG = False
+
 # enable big files upload
 ENABLE_BIGFILES = False
 

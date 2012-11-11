@@ -547,10 +547,7 @@ def add_user(request):
     # FIXME check, is migrated code for POST method
 
     if request.POST.get('nickname', '') and \
-       (any([request.POST.get('email', '').endswith(domain)
-            for domain in settings.ALLOWED_USER_DOMAINS]) or \
-       settings.SITE_MODE == settings.SITE_MODE_PUBLIC ) and \
-       mail.is_email_valid(request.POST.get('email', '')) and \
+        mail.is_email_valid(request.POST.get('email', '')) and \
        request.POST.get('password', ''):
         if request.POST.get('password', '') == request.POST.get('rpassword', ''):
             prevuser = None
@@ -737,7 +734,7 @@ def add_story(request):
         if ( usr == None ):
             usr = User.objects.get(email=settings.ANONYMOUS_USER_MAIL)
         story = None
-        if request.POST.get('title', '') and request.POST.get('bio', '') and request.POST.get('category', ''):
+        if request.POST.get('title', '') and request.POST.get('bio', '') and request.POST.get('category', '') and ('img' in request.FILES or settings.NEW_STORY_REQUIRE_IMG == False):
             # story
             
             story = Story()
