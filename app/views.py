@@ -84,6 +84,10 @@ def add_common_context(request, context, title = '', description = '', sidebar_s
     context['user'] = user
     context['followers'] = followers
     context['followers_count'] = followers_count
+    context['stories_label_capitalized'] = settings.DEFAULT_STORIES_LABEL_CAPITALIZED
+    context['stories_label'] = settings.DEFAULT_STORIES_LABEL
+    context['stories_label_singular'] = settings.DEFAULT_STORIES_LABEL_SINGULAR
+    context['site_name'] = settings.DEFAULT_SITE_NAME
 
     # m_Footer
     context['urlback'] = urlquote(request.path)
@@ -192,7 +196,7 @@ def index(request, category_name = ''):
                 stories = []
             #memcache.set('category_stories_' + category_name, list(stories), 60)
 
-        add_common_context(request, context, category_name.capitalize())
+        add_common_context(request, context, category.title)
         context['show_box_welcome'] = False
         context['feed_url'] = '/feeds/categories/%s/' % category_name
     else:
@@ -1526,25 +1530,31 @@ def vote_story(request):
 
 @login_required
 @admin_required
-def rss_importer(request):
+def importer(request):
     # Import data from feed
     # FIXME CHECK
-    entries = feedparser.parse(request.GET.get('feed', ''))["entries"]
+    entries = feedparser.parse(request.GET.get('url', ''))["items"]
     category = request.GET.get('category', '')
+    
     for entry in entries:
     
         prev_story = None
         try:
-            prev_story = Story.objects.filter(title=entry.title,bio=entry.description)[0]
+            # Custom data
+            prev_story = Story.objects.filter(title=entry.titulo,bio=entry.descripcion)[0]
         except:
             prev_story = None
             
         if prev_story is None:
     
             story = Story()
-            story.title = entry.title
-            story.bio = entry.description
-            story.link = entry.link
+            
+            # Custom data
+            
+            story.title = entry.titulo
+            story.bio = entry.descripcion
+            #story.link = entry.link
+
             story.author = get_current_user(request)
             story.category = Category.objects.get(name=category)
             story.pop = 0

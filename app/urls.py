@@ -15,7 +15,7 @@ urlpatterns = patterns('',
 
 urlpatterns += patterns('app.views',
     (r'^$','index'),
-    (r'^rss_importer/$', 'rss_importer'),
+    (r'^importer/$', 'importer'),
     (r'^legal/$', 'legal'),
     (r'^contact/$', 'contact'),
     (r'^search/$', 'search'),
