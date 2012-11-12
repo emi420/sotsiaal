@@ -23,7 +23,6 @@ from app import captcha
 from django.core.files.base import ContentFile
 from django.db.models import Q
 from django.core.mail import send_mail
-import feedparser
 import nltk
 
 # sidebar styles
@@ -222,7 +221,7 @@ def index(request, category_name = ''):
 
     add_stories_context(request, context, stories)
 
-    categories = Category.objects.filter(site=site).order_by('name')
+    categories = Category.objects.filter(site=site).order_by('id')
     context['categories'] = categories
 
     context['name'] = category_name
@@ -395,7 +394,7 @@ def new_story(request):
     context = {}
     add_common_context(request, context, sidebar_style = SIDEBAR_NOAD)
 
-    categories = Category.objects.all().order_by('name')
+    categories = Category.objects.all().order_by('id')
     error = request.GET.get('error', '')
 	
     user = get_current_user(request) 
@@ -1150,7 +1149,7 @@ def update_karma(request):
 
     context = {}
     context['debug'] = 'ok'
-    memcache.flush_all()
+    #memcache.flush_all()
 
     return render_to_response('sitio/debug.html', context,
                               context_instance=RequestContext(request))
@@ -1527,44 +1526,6 @@ def vote_story(request):
 
 
 ##### Admin utilities #####   
-
-@login_required
-@admin_required
-def importer(request):
-    # Import data from feed
-    # FIXME CHECK
-    entries = feedparser.parse(request.GET.get('url', ''))["items"]
-    category = request.GET.get('category', '')
-    
-    for entry in entries:
-        prev_story = None
-        try:
-            # Custom data
-            prev_story = Story.objects.filter(title=entry.titulo,bio=entry.descripcion)[0]
-        except:
-            prev_story = None
-            
-        if prev_story is None:
-    
-            story = Story()
-            
-            # Custom data
-            
-            story.title = entry.titulo
-            story.bio = entry.descripcion
-            #story.link = entry.link
-
-            story.author = get_current_user(request)
-            story.category = Category.objects.get(name=category)
-            story.pop = 0
-            story.karma = 0
-            story.status = 0
-            story.site_id
-            story.hkarma = 0
-            story.site = Site.objects.get(domain=settings.SITE_DOMAIN)
-            story.url = urlquote(story.title.replace('/', '-').replace(' ', '-').lower())
-            story.save()
-    return HttpResponse('1')
 
 @login_required
 @admin_required

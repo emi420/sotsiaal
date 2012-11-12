@@ -13,9 +13,12 @@ urlpatterns = patterns('',
     (r'^static/(.*)$', 'django.views.static.serve', {'document_root': settings.STATIC_URL})
 )
 
+urlpatterns += patterns('app.importer',
+    (r'^importer/$', 'importer'),
+)
+
 urlpatterns += patterns('app.views',
     (r'^$','index'),
-    (r'^importer/$', 'importer'),
     (r'^legal/$', 'legal'),
     (r'^contact/$', 'contact'),
     (r'^search/$', 'search'),
@@ -71,3 +74,5 @@ urlpatterns += patterns('app.views',
     ('^(.*)/', 'index'), # category
 	('^(.*)', 'view_profile'), # user profile
 )
+
+
