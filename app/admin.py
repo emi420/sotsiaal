@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from app.models import User, Site, Category, Story, Msg, Reply, Relationship, Vote
+from app.models import User, Site, Category, Story, Msg, Reply, Relationship, Vote, Tag
 from django.contrib import admin
 
 class UserAdmin(admin.ModelAdmin):
@@ -34,6 +34,10 @@ class VoteAdmin(admin.ModelAdmin):
     model = Vote
     list_display = ('value','story_title','msg_title', 'author_nickname')
 
+class TagAdmin(admin.ModelAdmin):
+    model = Tag
+    list_display = ('title','story_title')
+
 admin.site.register(User, UserAdmin)
 admin.site.register(Site, SiteAdmin)
 admin.site.register(Category, CategoryAdmin)
@@ -42,5 +46,6 @@ admin.site.register(Msg, MsgAdmin)
 admin.site.register(Reply, ReplyAdmin)
 admin.site.register(Relationship, RelationshipAdmin)
 admin.site.register(Vote, VoteAdmin)
+admin.site.register(Tag, TagAdmin)
 
 

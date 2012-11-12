@@ -360,7 +360,7 @@ def contact(request):
 
 
 def search(request):
-    '''Search page.'''
+    '''Search by query.'''
     # FIXME check, is migrated code
     context = {}
     add_common_context(request, context, request.GET.get('q', ''),
@@ -377,6 +377,23 @@ def search(request):
     context['searchquery'] = request.GET.get('q', '')
 
     return render_to_response('sitio/search.html', context,
+                              context_instance=RequestContext(request))
+
+def tag(request):
+    '''Search by tag.'''
+    context = {}
+    add_common_context(request, context, request.GET.get('tag', ''),
+                       sidebar_style = SIDEBAR_BASIC)
+
+    tag = request.GET.get('tag', '').split(',')    
+   
+    stories = Story.objects.filter(tags__title__in=tag).order_by('karma')
+
+    add_stories_context(request, context, stories)
+
+    context['searchquery'] = request.GET.get('tag', '')
+
+    return render_to_response('sitio/searchbytag.html', context,
                               context_instance=RequestContext(request))
 
 
@@ -719,19 +736,11 @@ def add_story(request):
     '''Add story.'''
     # FIXME check, is migrated code for POST method	
     usr = get_current_user(request)
-    challenge = request.POST.get('recaptcha_challenge_field')
-    response  = request.POST.get('recaptcha_response_field')
     #TODO
     remoteip  = '' #environ['REMOTE_ADDR']
-    cResponse = captcha.submit(
-                     challenge,
-                     response,
-                     settings.RECAPTCHA_PRIVATEKEY,
-                     remoteip)
 
-    if cResponse.is_valid or usr:
-        if ( usr == None ):
-            usr = User.objects.get(email=settings.ANONYMOUS_USER_MAIL)
+    if usr:
+
         story = None
         if request.POST.get('title', '') and request.POST.get('bio', '') and request.POST.get('category', '') and ('img' in request.FILES or settings.NEW_STORY_REQUIRE_IMG == False):
             # story
@@ -753,21 +762,6 @@ def add_story(request):
                      prev_story = exist_prev_query.get()
                      return HttpResponseRedirect( prev_story.generate_path() + '?msg=1' ) # exist prev history, same title		
 
-            usr = get_current_user(request)
-            use_anonymous = False
-            if ( usr == None ):
-                use_anonymous = True
-            else:
-                try:
-                    if usr.invisible_mode:
-                        use_anonymous = True
-                except:
-                    pass
-
-            if use_anonymous:
-                usr = User.objects.get(email=settings.ANONYMOUS_USER_MAIL)
-                #story.date = '001-01-01 01:01:01'
-
             story.author = usr
             story.url = urlquote(request.POST.get('title', '').replace('/', '-').replace(' ', '-').lower())
             story.title = request.POST.get('title', '')
@@ -782,23 +776,27 @@ def add_story(request):
             story.karma = 10
             story.hkarma = 0
             story.status = 0
-            if usr.email == settings.ANONYMOUS_USER_MAIL:
-            	story.client_ip = '127.0.0.1'
-            	#story.date = settings.ANONYMOUS_DATETIME
             story.save()
 
+            # Url
             urlprev_query = Story.objects.filter(url=story.url)
             urlprev_count = len(urlprev_query)
             if urlprev_count > 0:
                 story.url = story.url + '-' + str(story.id)
                 story.save()
-
+                
+            # Image
             if('img' in request.FILES):
                 file_content = ContentFile(request.FILES['img'].read())
                 story.avatar.save(request.FILES['img'].name, file_content)
                 story.image.save(request.FILES['img'].name, file_content)
+                
+            # Tags
+            tags = request.POST.get('tags', '').split(',')
+            for t in tags:
+                story.tags.create(title=t)               
 
-            # first vote
+            # First vote
             vote = Vote()
             vote.story = story
             vote.author = usr
@@ -815,7 +813,6 @@ def add_story(request):
             return HttpResponseRedirect(rurl)
             # required field missing
     else:
-        error = cResponse.error_code
         rurl = '/new_story/?error=2' 
         return HttpResponseRedirect(rurl)
 

@@ -13,15 +13,12 @@ urlpatterns = patterns('',
     (r'^static/(.*)$', 'django.views.static.serve', {'document_root': settings.STATIC_URL})
 )
 
-urlpatterns += patterns('app.importer',
-    (r'^importer/$', 'importer'),
-)
-
 urlpatterns += patterns('app.views',
     (r'^$','index'),
     (r'^legal/$', 'legal'),
     (r'^contact/$', 'contact'),
     (r'^search/$', 'search'),
+    (r'^tag/$', 'tag'),
     (r'^cache_flush/$', 'cache_flush'),
     (r'^new_story/$', 'new_story'),
     (r'^new_story$', 'new_story'), 

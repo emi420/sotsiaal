@@ -75,8 +75,7 @@ class Story(models.Model):
     status = models.IntegerField()
     client_ip = models.TextField()
     block_anonymous = models.BooleanField()
-    #FIXME (tags support)
-    #tags = SeparatedValuesField()
+    tags = models.ManyToManyField('Tag')
 
     def generate_path(self):
         '''Generate path to the story.'''
@@ -185,3 +184,15 @@ class Vote(models.Model):
         verbose_name = "Voto"
         verbose_name_plural = "Votos"
 
+class Tag(models.Model):
+    title = models.TextField()
+
+    def __unicode__(self):
+        return self.title       
+
+    def story_title(self):
+        return self.story.title
+
+    class Meta:
+        verbose_name = "Tag"
+        verbose_name_plural = "Tags"
